@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#05050f">
+<title>LUMIIA Secret Story v2.8</title>
+<link rel="manifest" href='data:application/json,{"name":"LUMIIA Secret","short_name":"Secret","start_url":".","display":"standalone","background_color":"#05050f","theme_color":"#FF1F72","icons":[]}'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- LUMIIA Secret Story v2.8 -->
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0d0d1e; --card:#14142a; --card2:#1c1c38;
+  --border:#252545; --border2:#3a3a60;
+  --pink:#FF1F72; --cyan:#00D4FF; --gold:#FFD060;
+  --green:#00E87A; --red:#FF3B5C; --purple:#8B5CF6;
+  --orange:#FF8C42;
+  --text:#fff; --text2:#9090b0; --text3:#606080;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow:hidden;}
+.mode{display:none;width:100vw;height:100vh;}
+.mode.active{display:flex;flex-direction:column;}
+.bn{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.c-pink{color:var(--pink);} .c-cyan{color:var(--cyan);} .c-gold{color:var(--gold);}
+.c-green{color:var(--green);} .c-red{color:var(--red);} .c-purple{color:var(--purple);}
+.c-text2{color:var(--text2);}
+
+/* ============================================================
+   PROJECTION
+   ============================================================ */
+#proj{background:var(--bg);position:relative;}
+#proj .header{
+  display:flex;align-items:center;gap:24px;padding:14px 32px;
+  border-bottom:2px solid var(--border);background:var(--bg2);height:96px;flex-shrink:0;
+}
+#proj .h-logo{font-family:'Bebas Neue';font-size:2.4rem;color:var(--pink);letter-spacing:3px;}
+#proj .h-logo .acc{color:var(--cyan);}
+#proj .h-session{font-family:'Bebas Neue';font-size:1.8rem;color:var(--gold);}
+#proj .h-status{font-size:1rem;color:var(--text2);font-weight:600;}
+#proj .h-status.live{color:var(--green);}
+#proj .h-spacer{flex:1;}
+#proj .h-version{font-size:.85rem;color:var(--text3);font-weight:600;}
+#proj .proj-settings-btn{
+  background:transparent;border:2px solid var(--border2);color:var(--text2);
+  width:42px;height:42px;border-radius:50%;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+#proj .proj-settings-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* Timer cercle — projection header */
+.timer-ring{width:78px;height:78px;flex-shrink:0;position:relative;}
+.timer-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring .ring-bg{fill:none;stroke:var(--border2);stroke-width:6;}
+.timer-ring .ring-fg{
+  fill:none;stroke:var(--cyan);stroke-width:6;stroke-linecap:round;
+  transition:stroke-dashoffset .3s linear, stroke .2s;
+}
+.timer-ring .ring-fg.warn{stroke:var(--gold);}
+.timer-ring .ring-fg.urgent{stroke:var(--red);}
+.timer-ring .ring-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:1.3rem;color:var(--cyan);letter-spacing:1.5px;
+}
+.timer-ring .ring-text.warn{color:var(--gold);}
+.timer-ring .ring-text.urgent{color:var(--red);}
+
+#proj .body{flex:1;display:flex;overflow:hidden;}
+
+/* Col left joueurs */
+#proj .col-left{
+  width:380px;flex-shrink:0;background:var(--bg2);border-right:2px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#proj .cl-title{
+  padding:14px 20px;font-family:'Bebas Neue';font-size:1.4rem;color:var(--cyan);
+  border-bottom:1px solid var(--border);letter-spacing:2px;display:flex;justify-content:space-between;align-items:baseline;
+}
+#proj .cl-count{font-size:1rem;color:var(--text2);}
+#proj .players-list{flex:1;overflow-y:auto;padding:8px 0;}
+#proj .players-list::-webkit-scrollbar{width:6px;}
+#proj .players-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+#proj .pl-row{
+  display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border);
+}
+#proj .pl-row.online{background:rgba(255,140,66,0.22);}
+#proj .pl-row.online.ready{background:rgba(0,232,122,0.22);}
+#proj .pl-row.in-duel{background:rgba(255,31,114,0.22);}
+#proj .pl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--text3);}
+#proj .pl-row.online .pl-dot{background:var(--orange);}
+#proj .pl-row.online.ready .pl-dot{background:var(--green);}
+#proj .pl-row.in-duel .pl-dot{background:var(--pink);}
+
+/* Label PRÊT/CONNECTÉ à côté du nom sur la projection */
+#proj .pl-status{
+  font-family:'Bebas Neue';font-size:.85rem;letter-spacing:1.5px;
+  padding:2px 8px;border-radius:4px;flex-shrink:0;
+}
+#proj .pl-row.online .pl-status{background:var(--orange);color:var(--bg);}
+#proj .pl-row.online.ready .pl-status{background:var(--green);color:var(--bg);}
+#proj .pl-row.in-duel .pl-status{background:var(--pink);color:#fff;}
+#proj .pl-name{flex:1;font-size:1.15rem;font-weight:700;}
+#proj .pl-row:not(.online) .pl-name{color:var(--text2);}
+#proj .pl-streak{font-size:.85rem;color:var(--gold);font-weight:700;}
+#proj .pl-score{
+  font-family:'Bebas Neue';font-size:1.5rem;color:var(--gold);min-width:48px;text-align:right;letter-spacing:1px;
+}
+#proj .pl-row:not(.online) .pl-score{color:var(--text3);}
+#proj .pl-empty{padding:30px 20px;text-align:center;color:var(--text3);font-style:italic;}
+
+/* Col right duels */
+#proj .col-right{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#proj .cr-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:14px 28px;border-bottom:1px solid var(--border);
+}
+#proj .cr-title{font-family:'Bebas Neue';font-size:1.6rem;color:var(--pink);letter-spacing:2px;}
+#proj .cr-sub{color:var(--text2);font-size:.95rem;}
+
+/* Grid duels — rectangles avec noms verticaux */
+#proj .duels{flex:1;display:grid;gap:18px;padding:22px 28px;overflow:hidden;}
+#proj .duels.empty{display:flex;align-items:center;justify-content:center;}
+#proj .duels.n1{grid-template-columns:1fr;grid-template-rows:1fr;max-width:900px;margin:0 auto;width:100%;}
+#proj .duels.n2{grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
+#proj .duels.n3{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr;}
+#proj .duels.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+#proj .duels.n5,#proj .duels.n6{grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;}
+#proj .duels.n7,#proj .duels.n8{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;}
+
+#proj .duel-card{
+  background:var(--card);border:2px solid var(--border2);border-radius:14px;
+  padding:24px 18px 0 18px;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+#proj .duel-card.pending{border-color:var(--gold);}
+#proj .duel-card.fast{border-color:var(--green);}
+#proj .dc-content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;}
+#proj .dc-name{
+  font-family:'Bebas Neue';letter-spacing:1.5px;text-align:center;
+  width:100%;line-height:1.05;word-break:break-word;hyphens:auto;
+}
+#proj .dc-name.left{color:var(--cyan);}
+#proj .dc-name.right{color:var(--pink);}
+#proj .dc-x{font-family:'Bebas Neue';color:var(--text2);font-size:1.5em;letter-spacing:4px;margin:4px 0;}
+#proj .duels.n1 .dc-name{font-size:5rem;}
+#proj .duels.n1 .dc-x{font-size:2.4rem;}
+#proj .duels.n2 .dc-name{font-size:3.5rem;}
+#proj .duels.n2 .dc-x{font-size:1.8rem;}
+#proj .duels.n3 .dc-name{font-size:2.4rem;}
+#proj .duels.n3 .dc-x{font-size:1.4rem;}
+#proj .duels.n4 .dc-name{font-size:2.6rem;}
+#proj .duels.n4 .dc-x{font-size:1.5rem;}
+#proj .duels.n5 .dc-name,#proj .duels.n6 .dc-name{font-size:1.9rem;}
+#proj .duels.n5 .dc-x,#proj .duels.n6 .dc-x{font-size:1.2rem;}
+#proj .duels.n7 .dc-name,#proj .duels.n8 .dc-name{font-size:1.5rem;}
+#proj .duels.n7 .dc-x,#proj .duels.n8 .dc-x{font-size:1rem;}
+
+#proj .dc-status{
+  font-size:.9rem;color:var(--text2);text-transform:uppercase;letter-spacing:2px;font-weight:700;
+  margin-top:8px;text-align:center;
+}
+#proj .dc-status.pending{color:var(--gold);}
+#proj .dc-status.fast{color:var(--green);}
+#proj .dc-fast-tag{
+  position:absolute;top:8px;right:8px;background:var(--green);color:var(--bg);
+  padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:800;letter-spacing:1px;
+}
+#proj .dc-time{
+  font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);text-align:center;
+  letter-spacing:2px;margin-top:4px;
+}
+#proj .dc-progress{
+  height:6px;background:var(--bg2);border-radius:0 0 12px 12px;margin:8px -18px 0;
+  overflow:hidden;flex-shrink:0;
+}
+#proj .dc-progress-bar{height:100%;background:var(--gold);transition:width .3s linear, background .2s;}
+#proj .dc-progress-bar.warn{background:var(--red);}
+#proj .dc-progress-bar.fast{background:var(--green);}
+
+#proj .empty-big{text-align:center;color:var(--text2);}
+#proj .empty-big-title{font-family:'Bebas Neue';font-size:3rem;color:var(--cyan);margin-bottom:16px;letter-spacing:3px;}
+#proj .empty-big-sub{font-size:1.4rem;margin-bottom:36px;}
+#proj .empty-qr-wrap{display:inline-block;background:#fff;padding:18px;border-radius:14px;}
+#proj .empty-qr-url{margin-top:14px;font-family:'Bebas Neue';font-size:1.4rem;color:var(--gold);letter-spacing:2px;}
+
+#proj .qr-mini{
+  position:absolute;bottom:18px;right:24px;background:#fff;padding:8px;border-radius:8px;
+  display:none;z-index:5;
+}
+#proj.qr-mini-on .qr-mini{display:block;}
+#proj .qr-mini-label{
+  position:absolute;bottom:0;right:160px;color:var(--text2);font-size:.85rem;font-weight:600;
+  padding:6px 12px;background:var(--bg2);border-radius:6px;display:none;
+}
+#proj.qr-mini-on .qr-mini-label{display:block;}
+
+#revelation{
+  position:fixed;inset:0;background:rgba(5,5,15,0.96);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:24px;z-index:100;padding:40px;
+}
+#revelation.show{display:flex;}
+#revelation .rev-tag{font-family:'Bebas Neue';font-size:3rem;color:var(--green);letter-spacing:4px;}
+#revelation .rev-who{font-family:'Bebas Neue';font-size:2.4rem;color:var(--cyan);}
+#revelation .rev-arrow{font-size:2rem;color:var(--text2);}
+#revelation .rev-target{font-family:'Bebas Neue';font-size:2.4rem;color:var(--pink);}
+#revelation .rev-secret-box{
+  background:var(--card);border:3px solid var(--gold);border-radius:18px;
+  padding:36px 48px;max-width:1200px;text-align:center;margin-top:24px;
+}
+#revelation .rev-secret-text{font-size:2.2rem;line-height:1.4;color:var(--gold);font-weight:600;}
+#revelation .rev-fast{margin-top:24px;font-family:'Bebas Neue';font-size:2rem;color:var(--green);letter-spacing:3px;}
+
+#proj .last-reveal{
+  display:none;padding:12px 28px;border-top:1px solid var(--border);background:var(--bg2);
+  font-size:1rem;flex-shrink:0;
+}
+#proj .last-reveal.show{display:block;}
+#proj .last-reveal .lr-tag{color:var(--text2);font-weight:700;margin-right:14px;letter-spacing:1px;}
+#proj .last-reveal .lr-who{color:var(--cyan);font-weight:700;}
+#proj .last-reveal .lr-secret{color:var(--gold);font-weight:600;margin-left:8px;}
+
+#countdown{
+  position:fixed;inset:0;background:rgba(5,5,15,0.94);display:none;
+  align-items:center;justify-content:center;z-index:200;
+}
+#countdown.show{display:flex;}
+#countdown .cd-num{font-family:'Bebas Neue';font-size:min(24rem,60vw);color:var(--red);letter-spacing:8px;line-height:1;}
+#countdown .cd-go{font-family:'Bebas Neue';font-size:min(14rem,45vw);color:var(--green);letter-spacing:6px;line-height:1;}
+
+/* Boutons OUI/NON validation : plus gros et espacés (anti-erreur de tap) */
+.jo-actions-big{gap:24px;margin-top:8px;}
+.jo-btn-big{
+  flex:1;min-width:120px;padding:22px 24px;font-size:1.4rem;font-weight:800;
+  letter-spacing:2px;font-family:'Bebas Neue';
+}
+
+/* Bouton son sur projection */
+#proj .proj-sound-btn{
+  background:transparent;border:2px solid var(--border2);color:var(--text2);
+  width:42px;height:42px;border-radius:50%;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+#proj .proj-sound-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+#proj .proj-sound-btn.muted{border-color:var(--red);color:var(--red);}
+@keyframes proj-sound-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+#proj .proj-sound-btn.attention{
+  background:var(--gold);color:var(--bg);border-color:var(--gold);
+  animation: proj-sound-pulse 1.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+#adm{background:var(--bg);overflow-y:auto;}
+#adm .adm-wrap{max-width:1100px;margin:0 auto;padding:24px;}
+#adm .adm-h{font-family:'Bebas Neue';font-size:2.6rem;color:var(--pink);letter-spacing:3px;}
+#adm .adm-h .acc{color:var(--cyan);}
+#adm .adm-sub{color:var(--text2);font-size:1rem;margin-bottom:24px;}
+#adm .adm-row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+#adm .adm-box{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:20px 22px;margin-bottom:20px;
+}
+#adm .adm-box-title{
+  font-family:'Bebas Neue';font-size:1.4rem;color:var(--cyan);letter-spacing:2px;margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+#adm .adm-status-bar{
+  display:flex;align-items:center;gap:12px;background:var(--bg2);border-radius:8px;padding:10px 14px;margin-bottom:14px;
+}
+#adm .status-dot{width:12px;height:12px;border-radius:50%;background:var(--text3);}
+#adm .status-dot.live{background:var(--green);}
+#adm .status-dot.preparing{background:var(--gold);}
+#adm .status-label{font-weight:700;color:var(--text);}
+
+#adm .session-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+#adm .session-btn{
+  background:var(--bg2);border:2px solid var(--border);color:var(--text);
+  padding:12px 8px;border-radius:8px;font-family:'Bebas Neue';font-size:1.3rem;
+  letter-spacing:2px;cursor:pointer;
+}
+#adm .session-btn:hover{border-color:var(--cyan);}
+#adm .session-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+
+.btn{
+  border:none;border-radius:8px;padding:12px 22px;font-family:'Barlow';font-size:1rem;font-weight:700;
+  cursor:pointer;color:var(--text);letter-spacing:.5px;
+}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-pink{background:var(--pink);} .btn-pink:hover:not(:disabled){background:#FF4488;}
+.btn-cyan{background:var(--cyan);color:var(--bg);} .btn-cyan:hover:not(:disabled){background:#22E0FF;}
+.btn-green{background:var(--green);color:var(--bg);} .btn-green:hover:not(:disabled){background:#22F088;}
+.btn-red{background:var(--red);} .btn-red:hover:not(:disabled){background:#FF5577;}
+.btn-gold{background:var(--gold);color:var(--bg);} .btn-gold:hover:not(:disabled){background:#FFDC77;}
+.btn-purple{background:var(--purple);} .btn-purple:hover:not(:disabled){background:#9D6FFF;}
+.btn-ghost{background:transparent;border:2px solid var(--border2);color:var(--text);}
+.btn-ghost:hover:not(:disabled){border-color:var(--cyan);}
+.btn-big{padding:16px 32px;font-size:1.15rem;}
+.btn-full{width:100%;}
+.btn-sm{padding:8px 14px;font-size:.9rem;}
+
+#adm .a-players{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+#adm .a-player{
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;
+  border-left:3px solid var(--text3);
+}
+#adm .a-player.connected-only{border-left-color:var(--orange);}
+#adm .a-player.ready{border-left-color:var(--green);}
+#adm .a-player-name{font-family:'Bebas Neue';font-size:1.3rem;color:var(--cyan);letter-spacing:1.5px;}
+#adm .a-player-cat{font-size:.85rem;color:var(--text2);margin:4px 0;}
+#adm .a-player-secret{font-size:.95rem;color:var(--gold);font-style:italic;}
+#adm .a-player-score{color:var(--text2);font-size:.85rem;margin-top:6px;}
+#adm .a-player.offline{opacity:.5;}
+/* Secrets cachés par défaut */
+#adm:not(.show-secrets) .a-player-cat,
+#adm:not(.show-secrets) .a-player-secret{
+  filter:blur(8px);user-select:none;pointer-events:none;
+}
+
+#adm .a-hints{display:flex;flex-direction:column;gap:8px;}
+#adm .a-hint{
+  background:var(--bg2);border-left:3px solid var(--gold);border-radius:6px;padding:10px 14px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+#adm .a-hint-from{font-weight:700;color:var(--cyan);}
+#adm .a-hint-target{font-weight:700;color:var(--pink);}
+#adm .a-hint-secret{color:var(--gold);font-style:italic;flex:1;min-width:200px;}
+#adm:not(.show-secrets) .a-hint-secret{filter:blur(8px);user-select:none;}
+#adm .a-hint-input{
+  flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:6px;font-family:'Barlow';
+}
+
+/* Modal */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;
+  align-items:center;justify-content:center;z-index:300;padding:24px;
+}
+.modal.show{display:flex;}
+.modal-box{
+  background:var(--card);border:2px solid var(--border2);border-radius:16px;
+  padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;
+}
+.modal-title{
+  font-family:'Bebas Neue';font-size:1.8rem;color:var(--cyan);margin-bottom:18px;letter-spacing:2px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modal-close{background:none;border:none;color:var(--text2);font-size:1.6rem;cursor:pointer;line-height:1;}
+.modal-section{margin-bottom:18px;}
+.modal-section h4{
+  font-family:'Bebas Neue';font-size:1.05rem;color:var(--gold);margin-bottom:10px;letter-spacing:1.5px;
+}
+.modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;}
+.modal-row label{color:var(--text);font-weight:600;flex:1;}
+.modal-row .sub{font-size:.85rem;color:var(--text2);display:block;margin-top:2px;font-weight:400;}
+.modal-row select,.modal-row input[type=number]{
+  background:var(--bg2);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:6px;font-family:'Barlow';min-width:80px;
+}
+.modal-row .switch{position:relative;width:46px;height:24px;}
+.modal-row .switch input{display:none;}
+.modal-row .switch span{
+  position:absolute;inset:0;background:var(--border2);border-radius:12px;cursor:pointer;transition:.2s;
+}
+.modal-row .switch span:after{
+  content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;
+}
+.modal-row .switch input:checked + span{background:var(--green);}
+.modal-row .switch input:checked + span:after{transform:translateX(22px);}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+
+/* QR admin dans modal settings */
+.admin-qr-block{
+  display:flex;gap:16px;align-items:center;background:var(--bg2);
+  border:1px solid var(--border);border-radius:10px;padding:14px;
+}
+.admin-qr-canvas{
+  background:#fff;padding:8px;border-radius:8px;flex-shrink:0;
+  width:140px;height:140px;display:flex;align-items:center;justify-content:center;
+}
+.admin-qr-canvas canvas,.admin-qr-canvas img{display:block;}
+.admin-qr-info{flex:1;min-width:0;}
+.admin-qr-hint{color:var(--text2);font-size:.9rem;margin-bottom:8px;line-height:1.4;}
+.admin-qr-url{
+  color:var(--cyan);font-family:'Barlow';font-size:.8rem;word-break:break-all;
+  background:var(--bg);padding:6px 8px;border-radius:6px;font-weight:600;
+}
+
+.confirm{background:var(--card);border:2px solid var(--gold);border-radius:14px;padding:24px;max-width:480px;}
+.confirm-title{font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);margin-bottom:12px;letter-spacing:2px;}
+.confirm-msg{color:var(--text);font-size:1.05rem;line-height:1.5;margin-bottom:18px;}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+
+/* ============================================================
+   JOUEUR mobile
+   ============================================================ */
+#joueur{background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#joueur .j-wrap{
+  max-width:540px;margin:0 auto;padding:18px 18px calc(28px + var(--safe-bottom));
+  min-height:100vh;display:flex;flex-direction:column;gap:14px;
+}
+#joueur .j-header{display:flex;justify-content:space-between;align-items:baseline;}
+#joueur .j-logo{font-family:'Bebas Neue';font-size:1.4rem;color:var(--pink);letter-spacing:2px;}
+#joueur .j-logo .acc{color:var(--cyan);}
+#joueur .j-version{font-size:.75rem;color:var(--text3);font-weight:600;}
+
+.screen{display:none;flex-direction:column;gap:14px;flex:1;}
+.screen.active{display:flex;}
+
+/* Inscription */
+#s-join .join-title{font-family:'Bebas Neue';font-size:2.4rem;color:var(--gold);text-align:center;letter-spacing:3px;line-height:1;margin:4px 0;}
+#s-join .join-sub, #s-join-secret .join-sub{text-align:center;color:var(--text2);font-size:1rem;margin-bottom:4px;}
+#s-join .field-label, #s-join-secret .field-label{
+  font-size:.85rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:700;
+}
+
+/* Écran 2 — choix du secret */
+#s-join-secret .join-welcome{
+  display:flex;align-items:baseline;gap:8px;justify-content:center;padding:4px 0;
+}
+#s-join-secret .jw-hello{color:var(--text2);font-size:1rem;}
+#s-join-secret .jw-name{font-family:'Bebas Neue';font-size:1.6rem;color:var(--cyan);letter-spacing:1.5px;}
+#s-join-secret .jw-emoji{font-size:1.4rem;}
+#s-join-secret .join-title-sm{
+  font-family:'Bebas Neue';font-size:1.8rem;color:var(--gold);text-align:center;
+  letter-spacing:3px;line-height:1;margin:2px 0 4px;
+}
+
+.inp{
+  width:100%;background:var(--card);border:2px solid var(--border);color:var(--text);
+  padding:14px 16px;border-radius:10px;font-size:1.05rem;font-family:'Barlow';
+}
+.inp:focus{outline:none;border-color:var(--cyan);}
+.cats-title{font-family:'Bebas Neue';font-size:1.3rem;color:var(--cyan);margin-top:6px;letter-spacing:2px;}
+.cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cat-btn{
+  background:var(--card);border:2px solid var(--border);color:var(--text);
+  padding:18px 12px;border-radius:10px;text-align:center;font-weight:700;cursor:pointer;
+  font-size:.95rem;min-height:72px;display:flex;align-items:center;justify-content:center;line-height:1.2;
+}
+.cat-btn:hover{border-color:var(--cyan);}
+.cat-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+.back-cat{
+  background:none;border:none;color:var(--cyan);font-size:.95rem;cursor:pointer;font-weight:700;padding:4px 0;text-align:left;
+}
+.secrets-pick-title{font-family:'Bebas Neue';font-size:1.2rem;color:var(--cyan);letter-spacing:2px;margin-top:4px;}
+.btn-random{
+  background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:10px 14px;
+  font-weight:700;cursor:pointer;
+}
+.secret-btn{
+  background:var(--card);border:2px solid var(--border);color:var(--text);
+  padding:14px;border-radius:10px;text-align:left;cursor:pointer;font-size:.95rem;
+  margin-bottom:8px;width:100%;line-height:1.35;
+}
+.secret-btn:hover{border-color:var(--gold);}
+.secret-btn.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:700;}
+.secret-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Bouton "Valider mon inscription" directement sous le champ */
+.join-name-block{display:flex;flex-direction:column;gap:12px;margin-top:8px;}
+.join-name-btn{margin-top:0;}
+
+/* Hint d'auto-validation */
+.auto-validate-hint{
+  background:rgba(0,212,255,0.1);border:1px solid var(--cyan);border-radius:8px;
+  padding:10px 12px;font-size:.85rem;color:var(--cyan);text-align:center;margin-bottom:8px;
+  line-height:1.3;
+}
+
+/* Overlay "Enregistrement..." pendant la validation */
+.validating-overlay{
+  position:fixed;inset:0;background:rgba(5,5,15,0.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:250;gap:14px;padding:24px;
+}
+.validating-overlay .vov-spin{font-size:3rem;animation:vov-pulse 1s ease-in-out infinite;}
+.validating-overlay .vov-txt{
+  font-family:'Bebas Neue';font-size:1.4rem;color:var(--gold);letter-spacing:2px;text-align:center;
+}
+@keyframes vov-pulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.6;transform:scale(1.1);}
+}
+
+/* Bouton "Me déconnecter" — discret en bas */
+.disconnect-row{
+  display:flex;justify-content:center;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.btn-disconnect{
+  background:transparent;border:1px solid var(--border2);color:var(--text2);
+  padding:8px 18px;border-radius:8px;font-family:'Barlow';font-size:.85rem;font-weight:600;
+  cursor:pointer;
+}
+.btn-disconnect:hover{border-color:var(--red);color:var(--red);}
+
+/* Wait */
+#s-wait .wait-title{font-family:'Bebas Neue';font-size:2rem;color:var(--cyan);text-align:center;letter-spacing:2px;}
+#s-wait .wait-msg{text-align:center;color:var(--text2);margin:6px 0 12px;}
+#s-wait .my-card{background:var(--card);border:2px solid var(--gold);border-radius:12px;padding:18px;}
+#s-wait .my-card .lbl{font-size:.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+#s-wait .my-card .val{font-family:'Bebas Neue';font-size:1.5rem;color:var(--gold);letter-spacing:1.5px;margin-top:4px;}
+#s-wait .my-card .sec{color:var(--gold);font-style:italic;margin-top:6px;font-size:1.05rem;}
+#s-wait .pcount{text-align:center;color:var(--text2);font-size:1rem;}
+
+/* Play : haut intégré (session + timer + score + streak), secret en bas */
+#s-play .play-head{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;
+  display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+}
+#s-play .ph-session{display:flex;flex-direction:column;}
+#s-play .ph-session-lbl{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;}
+#s-play .ph-session-name{font-family:'Bebas Neue';font-size:1.5rem;color:var(--gold);letter-spacing:1.5px;}
+#s-play .ph-ring{display:flex;justify-content:center;}
+.timer-ring-sm{width:64px;height:64px;position:relative;}
+.timer-ring-sm svg{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring-sm .ring-bg{fill:none;stroke:var(--border2);stroke-width:5;}
+.timer-ring-sm .ring-fg{fill:none;stroke:var(--cyan);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .3s linear, stroke .2s;}
+.timer-ring-sm .ring-fg.warn{stroke:var(--gold);}
+.timer-ring-sm .ring-fg.urgent{stroke:var(--red);}
+.timer-ring-sm .ring-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:.95rem;color:var(--cyan);letter-spacing:1px;
+}
+.timer-ring-sm .ring-text.warn{color:var(--gold);}
+.timer-ring-sm .ring-text.urgent{color:var(--red);}
+
+#s-play .ph-stats{display:flex;gap:14px;align-items:center;}
+#s-play .ph-stat{display:flex;flex-direction:column;align-items:flex-end;}
+#s-play .ph-stat-lbl{font-size:.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+#s-play .ph-stat-val{font-family:'Bebas Neue';font-size:1.3rem;letter-spacing:1.2px;}
+#s-play .ph-stat-val.score{color:var(--gold);}
+#s-play .ph-stat-val.streak{color:var(--gold);}
+#s-play .ph-stat-val.streak.bonus{color:var(--green);font-size:.85rem;}
+
+#s-play .players-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+#s-play .pw-title{font-family:'Bebas Neue';font-size:1.05rem;color:var(--cyan);letter-spacing:1.5px;margin-bottom:8px;}
+#s-play .opp-btn{
+  background:var(--card);border:2px solid var(--border);color:var(--text);
+  padding:14px 16px;border-radius:10px;width:100%;text-align:left;font-size:1rem;font-weight:600;
+  cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+}
+#s-play .opp-btn:hover{border-color:var(--pink);}
+#s-play .opp-btn:disabled{opacity:.4;cursor:not-allowed;}
+#s-play .opp-status{font-size:.8rem;color:var(--text2);}
+#s-play .opp-btn.busy .opp-status{color:var(--pink);}
+#s-play .opp-btn.faced{
+  opacity:.35;background:var(--bg2);
+  text-decoration:line-through;text-decoration-color:var(--text3);text-decoration-thickness:1px;
+}
+#s-play .opp-btn.faced .opp-status{color:var(--green);text-decoration:none;}
+
+.my-secret-bottom{
+  background:var(--card);border-left:4px solid var(--gold);border-radius:8px;padding:12px 14px;
+  margin-top:auto;flex-shrink:0;
+}
+.my-secret-bottom .ms-lbl{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.my-secret-bottom .ms-text{color:var(--gold);font-style:italic;margin-top:4px;font-size:.95rem;line-height:1.3;}
+
+/* Duel */
+#s-duel .duel-h{
+  background:var(--card);border:2px solid var(--pink);border-radius:12px;padding:14px 18px;text-align:center;
+}
+#s-duel .dh-lbl{font-size:.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;}
+#s-duel .dh-name{font-family:'Bebas Neue';font-size:2rem;color:var(--pink);letter-spacing:2px;margin-top:2px;}
+
+/* Timer cercle mobile (gros) */
+.timer-ring-big{width:200px;height:200px;margin:0 auto;position:relative;}
+.timer-ring-big svg{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring-big .ring-bg{fill:none;stroke:var(--border2);stroke-width:8;}
+.timer-ring-big .ring-fg{
+  fill:none;stroke:var(--gold);stroke-width:8;stroke-linecap:round;
+  transition:stroke-dashoffset .3s linear, stroke .2s;
+}
+.timer-ring-big .ring-fg.warn{stroke:var(--red);}
+.timer-ring-big .ring-fg.fast{stroke:var(--green);}
+.timer-ring-big .ring-text{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.timer-ring-big .ring-text-main{
+  font-family:'Bebas Neue';font-size:3.4rem;color:var(--gold);letter-spacing:3px;line-height:1;
+}
+.timer-ring-big .ring-text-main.warn{color:var(--red);}
+.timer-ring-big .ring-text-main.fast{color:var(--green);}
+.timer-ring-big .ring-text-sub{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px;font-weight:700;}
+
+#s-duel .timer-tag{text-align:center;color:var(--green);font-weight:700;font-size:.9rem;letter-spacing:1.5px;}
+#s-duel .timer-tag.normal{color:var(--text2);}
+
+/* === DUEL : headline géant + hiérarchie épurée === */
+#s-duel .duel-headline{
+  font-family:'Bebas Neue';font-size:2.2rem;color:var(--gold);
+  text-align:center;letter-spacing:3px;line-height:1.05;
+  padding:8px 8px 2px;
+}
+#s-duel .duel-headline.defend{color:var(--cyan);}
+#s-duel .duel-headline.win{color:var(--green);}
+#s-duel .duel-headline.lose{color:var(--red);}
+#s-duel .duel-headline.calm{font-size:1.6rem;color:var(--text2);}
+#s-duel .duel-headline-sub{
+  text-align:center;color:var(--text2);font-size:.85rem;
+  letter-spacing:1.2px;padding-bottom:4px;text-transform:uppercase;font-weight:700;
+}
+
+#s-duel .duel-phase{display:flex;flex-direction:column;gap:14px;flex:1;}
+
+/* Indice catégorie : simplifié, plus compact */
+#s-duel .opp-cat-hint{
+  background:rgba(255,208,96,0.08);border:2px dashed var(--gold);
+  border-radius:10px;padding:12px 14px;text-align:center;
+}
+#s-duel .opp-cat-hint.hidden{display:none;}
+#s-duel .opp-cat-hint .oc-lbl{
+  font-family:'Bebas Neue';font-size:1rem;color:var(--gold);letter-spacing:2.5px;
+}
+#s-duel .opp-cat-hint .oc-cat{
+  font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold);letter-spacing:1.5px;line-height:1.2;margin-top:2px;
+}
+
+/* === RÉPONSES NUMÉROTÉES (mode picto) === */
+#s-duel .choices-grid{display:flex;flex-direction:column;gap:8px;}
+#s-duel .choice-btn{
+  background:var(--card);border:2px solid var(--border);color:var(--text);
+  padding:12px 14px 12px 8px;border-radius:10px;cursor:pointer;
+  font-size:.95rem;line-height:1.3;font-weight:600;width:100%;
+  display:flex;align-items:center;gap:12px;text-align:left;
+}
+#s-duel .choice-btn .choice-num{
+  flex-shrink:0;width:34px;height:34px;border-radius:50%;
+  background:var(--cyan);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:1.15rem;letter-spacing:0;
+  border:2px solid var(--cyan);transition:all .15s;
+}
+#s-duel .choice-btn .choice-text{flex:1;}
+#s-duel .choice-btn:hover{border-color:var(--gold);background:rgba(255,208,96,0.08);}
+#s-duel .choice-btn:hover .choice-num{background:var(--gold);border-color:var(--gold);}
+#s-duel .choice-btn:active{transform:scale(0.98);}
+#s-duel .choice-btn:disabled{opacity:.5;cursor:not-allowed;}
+#s-duel .choice-btn.picked{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+#s-duel .choice-btn.picked .choice-num{background:#fff;color:var(--bg);border-color:#fff;}
+#s-duel .choice-btn.correct{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:800;}
+#s-duel .choice-btn.correct .choice-num{background:#fff;color:var(--bg);border-color:#fff;}
+#s-duel .choice-btn.wrong{background:var(--red);color:#fff;border-color:var(--red);}
+#s-duel .choice-btn.wrong .choice-num{background:#fff;color:var(--red);border-color:#fff;}
+
+/* Bouton "Le passer à quelqu'un d'autre" — discret */
+.btn-skip-duel{
+  background:transparent;border:1px solid var(--border2);color:var(--text2);
+  padding:10px;border-radius:8px;font-family:'Barlow';font-weight:600;font-size:.9rem;
+  cursor:pointer;width:100%;
+}
+.btn-skip-duel:hover{border-color:var(--text2);color:var(--text);}
+
+/* Sur écran duel, le secret rappel n'est plus en margin-top:auto (pour laisser le spacer prendre l'espace) */
+#s-duel .my-secret-bottom{margin-top:0;}
+
+/* Overlays */
+.j-overlay{
+  position:fixed;inset:0;background:rgba(5,5,15,0.92);display:none;align-items:center;justify-content:center;z-index:200;padding:18px;
+}
+.j-overlay.show{display:flex;}
+.j-overlay-box{
+  background:var(--card);border:3px solid var(--gold);border-radius:16px;padding:24px;text-align:center;max-width:440px;width:100%;
+}
+.jo-icon{font-size:3rem;margin-bottom:10px;}
+.jo-title{font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);letter-spacing:2px;margin-bottom:8px;}
+.jo-msg{color:var(--text);font-size:1.05rem;margin-bottom:16px;line-height:1.4;}
+.jo-secret{color:var(--gold);font-style:italic;background:var(--bg2);padding:10px;border-radius:8px;margin-bottom:14px;}
+.jo-actions{display:flex;gap:8px;justify-content:center;}
+
+/* End */
+#s-end{text-align:center;}
+#s-end .end-crown{font-size:4rem;margin:20px 0 10px;}
+#s-end .end-title{font-family:'Bebas Neue';font-size:2rem;color:var(--gold);letter-spacing:3px;}
+#s-end .podium{margin:18px 0;}
+#s-end .podium-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;
+}
+#s-end .podium-row.gold{border-color:var(--gold);}
+#s-end .podium-row.silver{border-color:#C0C0D0;}
+#s-end .podium-row.bronze{border-color:#CD7F32;}
+#s-end .p-rank{font-family:'Bebas Neue';font-size:1.6rem;width:36px;color:var(--gold);text-align:left;}
+#s-end .p-name{font-family:'Bebas Neue';font-size:1.4rem;text-align:left;letter-spacing:1.5px;}
+#s-end .p-score{font-family:'Bebas Neue';font-size:1.4rem;color:var(--gold);letter-spacing:1.5px;}
+
+.empty-msg{padding:14px;text-align:center;color:var(--text3);font-style:italic;font-size:.95rem;}
+
+</style>
+</head>
+<body>
+
+<div id="proj" class="mode">
+  <div class="header">
+    <div class="h-logo">LUMIIA <span class="acc">SECRET STORY</span></div>
+    <div class="h-session bn" id="p-session">—</div>
+    <div class="h-status" id="p-status">En attente</div>
+    <div class="h-spacer"></div>
+    <div class="timer-ring" id="p-timer-ring">
+      <svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="44"/><circle class="ring-fg" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="0"/></svg>
+      <div class="ring-text" id="p-timer-text">—</div>
+    </div>
+    <button class="proj-sound-btn" id="p-sound-btn" onclick="window._toggleSound()" title="Activer le son">🔊</button>
+    <button class="proj-settings-btn" onclick="window._openSettings()" title="Paramètres">⚙</button>
+    <div class="h-version">v2.8</div>
+  </div>
+
+  <div class="body">
+    <div class="col-left">
+      <div class="cl-title">JOUEURS <span class="cl-count" id="p-pcount">0</span></div>
+      <div class="players-list" id="p-players"></div>
+    </div>
+
+    <div class="col-right">
+      <div class="cr-head">
+        <div class="cr-title" id="p-dtitle">DUELS EN COURS</div>
+        <div class="cr-sub" id="p-dsub">—</div>
+      </div>
+      <div class="duels empty" id="p-duels">
+        <div class="empty-big" id="p-empty">
+          <div class="empty-big-title">Scannez pour rejoindre</div>
+          <div class="empty-big-sub">Les duels apparaîtront ici dès qu'ils démarrent</div>
+          <div class="empty-qr-wrap" id="p-qr-big"></div>
+          <div class="empty-qr-url" id="p-qr-url">lumiia-secret</div>
+        </div>
+      </div>
+      <div class="qr-mini-label">Rejoindre →</div>
+      <div class="qr-mini" id="p-qr-mini"></div>
+    </div>
+  </div>
+
+  <div class="last-reveal" id="p-last">
+    <span class="lr-tag">🔓 DERNIER SECRET RÉVÉLÉ</span>
+    <span class="lr-who" id="p-last-who"></span>
+    <span class="lr-secret" id="p-last-secret"></span>
+  </div>
+</div>
+
+<div id="revelation">
+  <div class="rev-tag">🔓 SECRET DÉCOUVERT</div>
+  <div class="rev-who" id="rev-who">—</div>
+  <div class="rev-arrow">a trouvé le secret de</div>
+  <div class="rev-target" id="rev-target">—</div>
+  <div class="rev-secret-box">
+    <div class="rev-secret-text" id="rev-secret-text">—</div>
+  </div>
+  <div class="rev-fast" id="rev-fast" style="display:none;">⚡ DUEL ÉCLAIR +2 POINTS</div>
+</div>
+
+<div id="countdown">
+  <div class="cd-num" id="cd-num">3</div>
+</div>
+
+<div id="adm" class="mode">
+  <div class="adm-wrap">
+    <div class="adm-h">LUMIIA <span class="acc">SECRET STORY</span> — ADMIN</div>
+    <div class="adm-sub">Gestion des sessions de jeu · <span id="a-version">v—</span></div>
+
+    <div class="adm-box">
+      <div class="adm-box-title">Session</div>
+      <div class="adm-status-bar">
+        <div class="status-dot" id="a-sdot"></div>
+        <div class="status-label" id="a-slabel">Chargement…</div>
+      </div>
+      <div class="session-btns" id="a-session-btns"></div>
+      <div class="adm-row" style="margin-top:14px;">
+        <button class="btn btn-cyan" id="a-btn-prepare">⚙ Préparer</button>
+        <button class="btn btn-green" id="a-btn-start" disabled>▶ Lancer la session</button>
+        <button class="btn btn-red" id="a-btn-stop" disabled>■ Arrêter</button>
+        <button class="btn btn-ghost" onclick="window._openProj()">📺 Vue projection</button>
+      </div>
+    </div>
+
+    <div class="adm-box">
+      <div class="adm-box-title">
+        Actions en cours de session
+      </div>
+      <div class="adm-row">
+        <button class="btn btn-gold" onclick="window._forceEndDuels()">🛑 Forcer fin des duels actifs</button>
+        <button class="btn btn-purple" onclick="window._resetScores()">↻ Reset scores (sans déco)</button>
+        <button class="btn btn-pink" onclick="window._exportCSV()">📊 Export CSV</button>
+        <button class="btn btn-red" onclick="window._fullReset()">⚠ Reset complet</button>
+      </div>
+    </div>
+
+    <div class="adm-box">
+      <div class="adm-box-title">
+        <span>Joueurs <span id="a-pcount" style="color:var(--text2);font-size:.95rem;">(0)</span></span>
+        <button class="btn btn-sm btn-ghost" id="a-btn-secrets" onclick="window._toggleSecrets()">👁 Secrets</button>
+      </div>
+      <div class="a-players" id="a-players"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal (paramètres uniquement, pas d'actions) -->
+<div class="modal" id="settings-modal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>Paramètres</span>
+      <button class="modal-close" onclick="window._closeSettings()">×</button>
+    </div>
+
+    <div class="modal-section">
+      <h4>Durées</h4>
+      <div class="modal-row">
+        <label>Durée d'une session<span class="sub">Temps total de la partie</span></label>
+        <select id="set-session-min">
+          <option value="15">15 min</option><option value="20" selected>20 min</option>
+          <option value="25">25 min</option><option value="30">30 min</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Durée d'une manche<span class="sub">Temps pour poser des questions à chaque tour</span></label>
+        <select id="set-round-sec">
+          <option value="60">1 min</option>
+          <option value="90">1 min 30</option>
+          <option value="120" selected>2 min</option>
+          <option value="180">3 min</option>
+          <option value="240">4 min</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Accès admin</h4>
+      <div class="admin-qr-block">
+        <div id="set-admin-qr" class="admin-qr-canvas"></div>
+        <div class="admin-qr-info">
+          <div class="admin-qr-hint">Scanne pour ouvrir la vue admin sur ton téléphone</div>
+          <div class="admin-qr-url" id="set-admin-url">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cyan" onclick="window._saveSettings()">Enregistrer</button>
+      <button class="btn btn-ghost" onclick="window._closeSettings()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirm-modal">
+  <div class="confirm">
+    <div class="confirm-title" id="cf-title">Confirmer</div>
+    <div class="confirm-msg" id="cf-msg">—</div>
+    <div class="confirm-actions" id="cf-actions"></div>
+  </div>
+</div>
+
+<div id="joueur" class="mode">
+  <div class="j-wrap">
+    <div class="j-header">
+      <div class="j-logo">LUMIIA <span class="acc">SECRET STORY</span></div>
+      <div class="j-version">v2.8</div>
+    </div>
+
+    <!-- Étape 1 : Nom -->
+    <div class="screen" id="s-join">
+      <div class="join-title">SECRET<br>STORY</div>
+      <div class="join-sub" id="j-sub">Bienvenue ! Entrez votre prénom pour rejoindre</div>
+
+      <div class="join-name-block">
+        <div class="field-label">Votre prénom</div>
+        <input class="inp" id="j-name" type="text" placeholder="Ex : Marion" maxlength="20" autocomplete="off">
+        <button class="btn btn-pink btn-big btn-full join-name-btn" id="j-btn-name" onclick="window._submitName()" disabled>Valider mon inscription →</button>
+      </div>
+    </div>
+
+    <!-- Étape 2 : Choix du secret (validation auto au clic) -->
+    <div class="screen" id="s-join-secret">
+      <div class="join-welcome">
+        <span class="jw-hello">Salut</span>
+        <span class="jw-name" id="j2-myname">—</span>
+        <span class="jw-emoji">👋</span>
+      </div>
+      <div class="join-title-sm">JE VEUX JOUER</div>
+      <div class="join-sub" id="j2-sub">Choisis ta catégorie et ton secret pour la session</div>
+
+      <div id="j-step-cats">
+        <div class="cats-title">Choisissez une catégorie</div>
+        <div class="cats-grid" id="j-cats-grid"></div>
+      </div>
+
+      <div id="j-step-secrets" style="display:none;">
+        <button class="back-cat" onclick="window._backCats()">← Changer de catégorie</button>
+        <div class="secrets-pick-title" id="j-cat-title">Choisissez votre secret</div>
+        <div class="auto-validate-hint">👇 Touchez un secret pour le sélectionner et le valider directement</div>
+        <button class="btn-random" onclick="window._pickRandom()">🎲 Secret aléatoire</button>
+        <div id="j-secrets-list"></div>
+      </div>
+
+      <div class="validating-overlay" id="j-validating" style="display:none;">
+        <div class="vov-spin">⏳</div>
+        <div class="vov-txt">Enregistrement de votre secret…</div>
+      </div>
+    </div>
+
+    <!-- Attente -->
+    <div class="screen" id="s-wait">
+      <div class="wait-title">EN ATTENTE</div>
+      <div class="wait-msg" id="w-msg">L'admin lance bientôt la session…</div>
+      <div class="my-card">
+        <div class="lbl">Mon prénom</div>
+        <div class="val" id="w-name">—</div>
+        <div class="lbl" style="margin-top:10px;">🔐 Mon secret</div>
+        <div class="sec" id="w-secret">—</div>
+      </div>
+      <div class="pcount">Joueurs inscrits : <strong id="w-count">0</strong></div>
+      <div class="disconnect-row">
+        <button class="btn-disconnect" onclick="window._disconnect()">🚪 Me déconnecter</button>
+      </div>
+    </div>
+
+    <!-- Play -->
+    <div class="screen" id="s-play">
+      <div class="play-head">
+        <div class="ph-session">
+          <div class="ph-session-lbl">Session</div>
+          <div class="ph-session-name" id="pp-session-name">S01</div>
+        </div>
+        <div class="ph-ring">
+          <div class="timer-ring-sm" id="pp-ring">
+            <svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="44"/><circle class="ring-fg" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="0"/></svg>
+            <div class="ring-text" id="pp-ring-text">—</div>
+          </div>
+        </div>
+        <div class="ph-stats">
+          <div class="ph-stat">
+            <div class="ph-stat-lbl">Score</div>
+            <div class="ph-stat-val score" id="pp-score">0</div>
+          </div>
+          <div class="ph-stat" id="pp-streak-wrap" style="display:none;">
+            <div class="ph-stat-lbl">🔥 Victoires</div>
+            <div class="ph-stat-val streak" id="pp-streak-val">0/3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="players-wrap">
+        <div class="pw-title">Tapez sur un joueur pour le défier</div>
+        <div id="pp-players"></div>
+      </div>
+
+      <div class="my-secret-bottom">
+        <div class="ms-lbl">🔐 Mon secret</div>
+        <div class="ms-text" id="pp-mysecret">—</div>
+      </div>
+      <div class="disconnect-row">
+        <button class="btn-disconnect" onclick="window._disconnect()">🚪 Me déconnecter</button>
+      </div>
+    </div>
+
+    <!-- Duel : 2 manches, 1 par joueur -->
+    <div class="screen" id="s-duel">
+      <div class="duel-h">
+        <div class="dh-lbl">⚔ Duel contre</div>
+        <div class="dh-name" id="d-opp">—</div>
+      </div>
+
+      <!-- Headline géant : ce qu'on doit lire en PREMIER -->
+      <div class="duel-headline" id="d-headline">—</div>
+      <div class="duel-headline-sub" id="d-headline-sub">—</div>
+
+      <!-- Phase ASK : timer + indice (asker only) -->
+      <div class="duel-phase" id="d-phase-ask">
+        <div class="timer-ring-big" id="d-ring">
+          <svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="44"/><circle class="ring-fg" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="0"/></svg>
+          <div class="ring-text">
+            <div class="ring-text-main" id="d-timer-text">3:00</div>
+            <div class="ring-text-sub" id="d-timer-sub">temps restant</div>
+          </div>
+        </div>
+
+        <div class="opp-cat-hint" id="d-opp-cat-hint">
+          <div class="oc-lbl">💡 INDICE</div>
+          <div class="oc-cat" id="d-opp-cat">—</div>
+        </div>
+      </div>
+
+      <!-- Phase CHOOSE : 6 réponses possibles -->
+      <div class="duel-phase" id="d-phase-choose" style="display:none;">
+        <div class="choices-grid" id="d-choices"></div>
+      </div>
+    </div>
+
+    <!-- End -->
+    <div class="screen" id="s-end">
+      <div class="end-crown">🏆</div>
+      <div class="end-title">FIN DE SESSION</div>
+      <div class="podium" id="e-podium"></div>
+    </div>
+  </div>
+</div>
+
+<div class="j-overlay" id="ov-result">
+  <div class="j-overlay-box">
+    <div class="jo-icon" id="ov-r-icon">🎯</div>
+    <div class="jo-title" id="ov-r-title">—</div>
+    <div class="jo-msg" id="ov-r-msg">—</div>
+    <div class="jo-actions">
+      <button class="btn btn-cyan" onclick="window._closeResult()">OK</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+
+'use strict';
+const VERSION = '2.8';
+
+// ===================== FIREBASE =====================
+const fbConfig = {
+  apiKey:"AIzaSyBPgjVFKrP80qX_hlfUFqL168XONfNIBA4",
+  authDomain:"lumiia-live.firebaseapp.com",
+  databaseURL:"https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"lumiia-live",
+  storageBucket:"lumiia-live.firebasestorage.app",
+  appId:"1:701706395916:web:secret"
+};
+firebase.apps.find(a=>a.name==='secret') || firebase.initializeApp(fbConfig,'secret');
+const db = firebase.app('secret').database();
+const ROOT = db.ref('secretstory');
+
+// ===================== DATA =====================
+const SESSIONS = {"S01": {"title": "Quotidien & manies cachées", "categories": [{"name": "🍽 Quand je mange seul", "secrets": ["Je goûte les cerises au supermarché avant de payer", "J'ai déjà mangé une pâte à tartiner à la cuillère directement dans le pot", "J'ai déjà mangé un repas entier debout devant le frigo", "J'ai déjà commandé 'pour deux' quand j'étais tout seul", "Je mange la garniture d'un sandwich en laissant le pain", "J'ai déjà léché le couvercle d'un yaourt en regardant autour", "J'ai déjà mangé des chips à 7h du matin", "J'ai déjà ouvert le frigo cinq fois en espérant qu'il y apparaisse quelque chose", "Je range mes frites du plus court au plus long avant de les manger", "J'ai déjà pris la règle des cinq secondes très au sérieux"]}, {"name": "🚿 Sous la douche & salle de bain", "secrets": ["Je chante des chansons de Disney à pleine voix sous la douche", "Je fais des grimaces à mon reflet dans le miroir", "Je rejoue des scènes de films dans ma salle de bain", "Je me fais des discours dans la salle de bain avant une réunion importante", "Je chuchote des paroles que je n'oserais jamais dire en vrai", "J'ai déjà chanté un karaoké entier seul sous la douche", "Je prends des poses devant le miroir comme dans un clip", "Je fais des concours d'apnée dans le bain quand je suis seul", "J'imite des accents étrangers tout seul dans la salle de bain", "Je me parle dans le miroir comme à un coach"]}, {"name": "😬 Mes tics que je nie", "secrets": ["Je fredonne en faisant la vaisselle sans m'en rendre compte", "Je compte les marches dans les escaliers sans le vouloir", "Je rejoue des conversations dans ma tête après coup", "Je compte les voitures rouges quand je suis passager", "Je chantonne en mode concentré sans m'en apercevoir", "Je fais des petits sauts de joie quand quelqu'un annule un plan", "Je relis mes messages envoyés pour vérifier qu'ils sonnent bien", "Je serre les dents en regardant quelqu'un faire quelque chose mal", "Je fais des bruits de moteur dans ma tête quand je cours", "Je dis 'no stress' alors que je suis stressé"]}, {"name": "🐾 Avec mes animaux & plantes", "secrets": ["Je parle à mes plantes comme à des amis", "Je parle aux animaux comme s'ils me comprenaient parfaitement", "Je parle en différentes langues à mes animaux selon mon humeur", "Je fais des grimaces à mon chat pour voir s'il réagit", "Je danse avec mon chien comme s'il était partenaire", "Je présente mes plantes à mes invités par leur prénom", "Je prends des selfies avec mon chat sans qu'il consente", "Je chante des berceuses inventées à mes plantes", "Je raconte ma journée à mon poisson chaque soir", "Je m'excuse auprès de mes plantes quand je les oublie"]}, {"name": "📱 Mon rapport au téléphone", "secrets": ["Je check mon téléphone même quand il n'a pas bipé", "J'ai déjà fait semblant d'être au téléphone pour éviter quelqu'un", "J'ai déjà paniqué parce que j'avais perdu mon téléphone qui était dans ma main", "Je relis dix fois un message avant de l'envoyer", "J'ai déjà prétendu ne pas avoir vu un message vu deux jours plus tôt", "Je fais semblant que mon téléphone est mort pour éviter de répondre", "Je passe une heure sur un seul réel sans bouger", "J'ai déjà supprimé une appli puis réinstallée dans la même heure", "Je regarde mon écran d'accueil sans savoir pourquoi je l'ai allumé", "Je fais des screenshots de tout sans jamais les retrouver"]}, {"name": "🧦 Maniaqueries de rangement", "secrets": ["Je plie mes chaussettes d'une façon très spéciale que j'ai inventée", "J'ai un tiroir que personne n'a le droit d'ouvrir", "Je classe mes livres par couleur plutôt que par auteur", "Je range les yaourts du frigo par date dans l'autre sens", "Je ne supporte pas que les cintres soient dans le mauvais sens", "Je remets les produits dans le bon rayon au supermarché", "Je garde mes vieux téléphones sans savoir pourquoi", "Je ramasse des cailloux bizarres et je les garde", "J'ai une collection secrète que je n'assume pas", "Je ne jette pas les boîtes en carton 'au cas où'"]}]}, "S02": {"title": "Hontes & maladresses", "categories": [{"name": "🤦 Mes plus grosses bourdes", "secrets": ["J'ai déjà appelé un prof 'maman' devant toute la classe", "J'ai déjà tenté de payer avec ma carte de fidélité à la boulangerie", "Je pousse une porte marquée 'tirer' devant des gens", "J'ai déjà fait coucou à un inconnu en croyant le connaître", "J'ai dit 'toi aussi' à 'bon film' au cinéma", "J'ai trébuché en sortant d'un magasin et je suis remonté pour le refaire", "Je suis sorti des toilettes avec du papier collé à la chaussure", "J'ai fait la bise à quelqu'un qui tendait la main", "J'ai parlé à mon reflet en croyant que c'était quelqu'un derrière une vitre", "J'ai dit bonjour deux fois à la même personne dans la même heure"]}, {"name": "🤥 Quand j'ai menti", "secrets": ["J'ai déjà fait semblant d'aimer un cadeau horrible", "J'ai déjà menti sur un film que j'avais soi-disant vu", "J'ai déjà menti sur mon âge", "J'ai ri à une blague que je n'avais pas comprise", "J'ai déjà fait semblant d'être malade pour rester chez moi", "J'ai déjà fait semblant de dormir dans l'avion pour ne pas parler au voisin", "J'ai dit que j'arrivais alors que je n'étais même pas habillé", "J'ai prétendu avoir lu un livre dont je n'avais lu que le résumé", "J'ai déjà refusé un appel et envoyé 'j'arrive' juste après", "J'ai déjà fait semblant de connaître une chanson devant des fans"]}, {"name": "😱 Mes peurs ridicules", "secrets": ["J'ai une peur irrationnelle d'une chose très banale", "J'ai peur du vide mais je m'approche quand même", "J'ai déjà eu peur d'un pigeon qui me regardait trop longtemps", "Je vérifie la porte d'entrée plusieurs fois avant de dormir", "J'ai peur qu'une araignée vienne me chercher dans le lit", "Je n'aime pas mettre les mains dans le sable", "J'ai peur des poupées anciennes en porcelaine", "Je n'arrive pas à dormir si le placard n'est pas fermé", "Je m'imagine toujours des scénarios catastrophes sous la douche", "Je vérifie sous le lit avant de dormir, même adulte"]}, {"name": "📸 Honte sur les réseaux", "secrets": ["J'ai une playlist de musiques très honteuses", "Je fais des selfies que je ne publie jamais", "J'ai déjà liké une photo de 2014 par accident", "J'ai déjà commenté en public au lieu d'envoyer en privé", "J'ai un compte Instagram secret pour stalker", "J'ai déjà publié une story alors que je voulais l'envoyer en privé", "Je googlise mon propre nom de temps en temps", "J'ai un dossier de mèmes que je ne montre à personne", "J'ai déjà supprimé un post parce qu'il n'avait pas assez de likes", "J'ai gardé un screen de mes propres messages pour les relire"]}, {"name": "🍷 Quand j'ai trop bu", "secrets": ["J'ai déjà appelé mon ex à 3h du matin et je nie encore", "J'ai déjà fini la soirée à raconter ma vie au chauffeur Uber", "J'ai dansé sur une table sans m'en souvenir", "J'ai fini un apéro endormi sur le canapé d'un inconnu", "J'ai déclamé un poème sans y avoir été invité", "J'ai déjà rentré à pied parce que j'avais oublié où était ma voiture", "Je me suis battu pour la dernière chips du saladier", "J'ai déclaré ma flamme à une lampe en croyant que c'était quelqu'un", "J'ai fait un karaoké de Céline Dion en pleurant", "Je me suis endormi en plein milieu d'une phrase"]}, {"name": "💼 Au boulot / en réunion", "secrets": ["Je fais des blagues dans ma tête en pleine réunion sérieuse", "J'ai déjà répondu 'très bien' sans avoir entendu la question", "Je dessine des trucs absurdes pendant les visios sans micro", "J'ai déjà coupé mon micro pour rire seul", "J'ai déjà confondu deux collègues pendant six mois", "Je fais semblant de noter en réunion pour ne pas dormir", "J'ai déjà coupé une visio pour fuir une question difficile", "Je relis mes mails dix fois avant d'envoyer même les plus banals", "J'ai déjà appliqué un fond virtuel pour cacher mon bazar", "J'ai mangé un sandwich en réunion en mimant qu'il n'y avait rien"]}]}, "S03": {"title": "Amour & relations", "categories": [{"name": "💕 Mes premières fois", "secrets": ["Mon premier amour, c'était une star que j'ai cru épouser un jour", "Mon premier rendez-vous, j'ai failli faire demi-tour devant le resto", "J'ai appris à embrasser sur le dos de ma main, je l'avoue", "Mon premier slow, j'ai compté à voix basse pour ne pas perdre le rythme", "Ma première lettre d'amour, je l'ai gardée et je la relis parfois", "Mon premier baiser, je l'ai gâché en éclatant de rire", "Mon premier crush, je le suis encore sur Instagram aujourd'hui", "Mon premier dîner romantique, c'était à McDo et j'assume", "Ma première rupture, c'était par SMS et je n'en suis pas fier", "Mon premier 'je t'aime', je l'ai dit par erreur en raccrochant"]}, {"name": "💔 Coups de foudre ratés", "secrets": ["Je suis tombé amoureux d'un serveur en vacances", "J'ai eu un crush sur quelqu'un par message pendant un an sans le rencontrer", "J'ai changé d'arrêt de bus pour recroiser quelqu'un", "J'ai été amoureux d'un personnage de série pendant des mois", "Je suis tombé amoureux d'une voix au téléphone du SAV", "J'ai stalké un crush pendant deux ans sans jamais lui parler", "J'ai aimé en silence quelqu'un qui sortait avec mon meilleur ami", "J'ai eu un crush sur mon prof de fac et j'ai changé d'option", "Je rêvais d'une fille croisée dans le métro sans connaître son nom", "Je suis tombé amoureux d'un crush par caméra cachée"]}, {"name": "🔥 Disputes mémorables", "secrets": ["J'ai cassé une assiette en pleine dispute, exprès", "Je me suis disputé pour une histoire de papier toilette mal posé", "Je n'ai pas parlé pendant trois jours pour une histoire de chargeur", "Je me suis fâché parce qu'on m'a mangé la dernière part de gâteau", "J'ai quitté un dîner de famille à cause d'une remarque sur ma coiffure", "Je me suis vexé sur un compliment que j'ai mal interprété", "J'ai claqué une porte tellement fort que je l'ai cassée", "Je suis parti d'une soirée pour une réflexion sur ma cuisine", "Je n'ai jamais accepté de demander pardon pour un truc datant de l'école", "Je suis encore vexé d'un commentaire fait il y a dix ans"]}, {"name": "👻 Ex que je n'oublie pas", "secrets": ["Je regarde encore le profil d'un ex de temps en temps", "J'ai gardé une boîte de souvenirs cachée dans le placard", "Je connais encore par cœur le numéro d'un ex", "Je rêve d'un ex de manière récurrente sans savoir pourquoi", "Je passe parfois devant l'ancienne maison d'un ex juste pour voir", "Je suis encore ami avec la mère d'un ex sur Facebook", "Je sors avec quelqu'un qui ressemble étrangement à mon ex", "J'ai gardé une chanson 'à nous' que je n'écoute plus en présence de l'autre", "Je continue à parler de mon ex dans mes phrases sans le réaliser", "Je me demande encore comment leur vie a tourné"]}, {"name": "😍 Crushes assumés ou pas", "secrets": ["J'ai un crush sur une célébrité depuis l'adolescence", "J'ai un crush sur quelqu'un dans mon entourage immédiat", "J'ai un crush sur un personnage de jeu vidéo", "J'ai un crush sur une voix de comédien de doublage", "J'ai un crush sur quelqu'un que je vois tous les jours sans lui parler", "J'ai un crush sur un de mes profs et j'avais 25 ans", "J'ai eu un crush sur un voisin que je n'ai jamais osé saluer", "Je rougis dès que je croise mon crush dans le couloir", "J'ai un crush sur le boulanger qui dit toujours mon prénom", "Je trouve mon dentiste très séduisant et c'est embarrassant"]}, {"name": "👨‍👩‍👧 Famille & secrets de famille", "secrets": ["Il y a un secret de famille que je n'ai jamais osé poser", "Je suis le préféré de quelqu'un dans ma famille et je le sais", "J'ai un cousin qui me déteste depuis qu'on a 8 ans", "Je dors encore avec une peluche depuis l'enfance", "J'ai un surnom honteux que quelqu'un utilise encore", "Mes parents ne savent toujours pas ce que je fais de mes journées", "J'ai déjà piqué dans le sac à main de ma mère adolescent", "Je m'entends mieux avec mes beaux-parents qu'avec mes parents", "Je sais où sont cachés les cadeaux de Noël depuis l'âge de 7 ans", "J'ai un membre de ma famille qui ne sait pas que je ne l'aime pas"]}]}, "S04": {"title": "Aventures & galères", "categories": [{"name": "✈️ Voyages qui ont dérapé", "secrets": ["J'ai loupé un avion en pensant qu'il partait deux heures plus tard", "J'ai pris un train dans le mauvais sens pendant une heure", "J'ai dormi à l'aéroport parce que j'avais oublié de réserver l'hôtel", "J'ai perdu ma valise sans le réaliser pendant deux jours", "J'ai fait un tour entier du pays en croyant aller à la mer", "J'ai oublié mon passeport le jour du départ", "J'ai pris un avion avec une chaussure qui n'était pas la bonne paire", "J'ai marché trois heures avec une carte à l'envers", "J'ai dormi dans un hôtel hanté sans le savoir", "J'ai mangé un plat que j'ai cru exotique et c'était juste un truc périmé"]}, {"name": "🤝 Rencontres improbables", "secrets": ["J'ai rencontré une célébrité dans un Decathlon et j'ai bafouillé", "J'ai aidé un parfait inconnu et on est devenus amis pour la vie", "J'ai partagé un repas avec quelqu'un dont je n'ai jamais su le nom", "J'ai croisé mon idole d'enfance dans une station-service", "J'ai rencontré l'amour de ma vie sur un quai de gare pendant cinq minutes", "Une mamie m'a raconté toute sa vie dans la file de la poste", "J'ai fait copain avec mon voisin d'avion et on s'envoie encore des cartes", "Un mendiant m'a donné un conseil qui a changé ma vie", "Une serveuse m'a hypnotisé en une soirée", "J'ai eu une discussion philosophique avec un enfant de 6 ans"]}, {"name": "🌃 Soirées qui ont dégénéré", "secrets": ["J'ai dormi dans une baignoire après une soirée", "J'ai fini une fête nationale avec un costume de mariée emprunté", "J'ai cassé une vitre en dansant trop énergiquement", "Je suis rentré pieds nus avec les chaussures de quelqu'un d'autre", "J'ai pris un train sans billet et j'ai dormi tout le trajet", "J'ai cuisiné des pâtes à 4h du matin pour quinze inconnus", "J'ai sauté dans une piscine tout habillé en plein hiver", "J'ai chanté du Goldman a cappella debout sur un canapé", "Je me suis retrouvé dans un appart inconnu sans savoir comment", "J'ai dansé dans un sous-sol pendant six heures non-stop"]}, {"name": "🎒 Bêtises d'ado", "secrets": ["J'ai séché les cours pour aller faire des photos de moi", "J'ai sonné chez des inconnus et je suis parti en courant", "J'ai écrit un mot d'absence avec la signature de mes parents", "J'ai volé un panneau de signalisation pour décorer ma chambre", "J'ai fait croire à un prof que mon hamster était mort pour rater un contrôle", "J'ai téléphoné à des numéros au hasard pour faire des farces", "J'ai posé des paquets emballés vides devant une vitrine", "J'ai trompé tout un cours en faisant croire que c'était férié", "J'ai déjà collé du chewing-gum sous une chaise de prof", "J'ai déjà piqué les clés d'une voiture juste pour voir"]}, {"name": "🏃 Quand j'ai fait du sport", "secrets": ["Je suis tombé en plein cours de Zumba et je me suis relevé en dansant", "Je me suis perdu en plein marathon", "J'ai fait croire que je courais alors que je marchais vite", "J'ai utilisé un cours de yoga pour faire la sieste", "Je me suis remis au sport et arrêté en trois jours, trois fois cette année", "Je m'achète des baskets neuves pour me motiver, en vain", "J'ai déjà fait du jogging au cinéma pour me convaincre que je bougeais", "J'ai oublié que j'avais un cours de gym pendant un mois", "J'ai claqué la porte d'un cours de spinning au bout de cinq minutes", "J'ai fait semblant de courir vite quand un voisin sortait sa poubelle"]}, {"name": "🌍 Coups de chaud à l'étranger", "secrets": ["J'ai mangé un truc inconnu et j'ai été malade trois jours", "Je me suis perdu sans téléphone en pleine nuit dans un pays étranger", "J'ai dit 'bonjour' à la place de 'merci' pendant tout un voyage", "Je me suis laissé pousser par la foule d'un marché sans pouvoir m'arrêter", "J'ai cru être suivi pendant tout un week-end et c'était un touriste perdu", "Je me suis fait arnaquer trois fois en une journée à Marrakech", "J'ai pris un taxi qui m'a fait visiter la ville à mes frais sans le vouloir", "J'ai cherché un hôtel pendant quatre heures avec la mauvaise adresse", "J'ai mangé une glace et le marchand m'a pris en photo comme client honteux", "Je me suis baigné dans une fontaine en pensant que c'était autorisé"]}]}, "S05": {"title": "Pensées & rêves secrets", "categories": [{"name": "🚀 Mes ambitions cachées", "secrets": ["Je rêve secrètement de monter sur scène un jour", "J'ai écrit un roman que je n'ai jamais montré à personne", "Je rêve de tout plaquer pour ouvrir une crêperie", "Je voudrais lancer une chaîne YouTube mais je n'ose pas", "J'aimerais être interviewé un jour dans un documentaire sérieux", "Je rêve de gagner à un jeu télévisé devant ma famille", "J'ai préparé mon discours de remerciement aux Oscars dans ma tête", "Je rêve d'apprendre un instrument et je n'ai jamais commencé", "Je voudrais écrire un livre pour enfants à ma retraite", "Je rêve de partir vivre seul sur une île pendant un an"]}, {"name": "🎭 Talents que personne ne connaît", "secrets": ["Je sais imiter parfaitement la voix de quelqu'un que je n'avoue pas", "Je connais par cœur les répliques d'un film de plus de 2h", "Je peux retenir vingt numéros de téléphone par cœur", "Je sais faire un nœud de cravate les yeux fermés", "Je peux faire claquer ma langue dans cinq tonalités différentes", "Je sais réciter l'alphabet à l'envers en moins de dix secondes", "Je peux deviner la météo en regardant les nuages", "Je sais détecter quand quelqu'un ment juste à sa voix", "Je sais dessiner une carte de France de mémoire", "Je peux mémoriser un texte entier en trois lectures"]}, {"name": "🔮 Croyances irrationnelles", "secrets": ["Je touche du bois plusieurs fois par jour au cas où", "Je crois qu'il existe un signe pour tout dans la vie", "Je crois aux fantômes uniquement la nuit", "Je consulte mon horoscope chaque matin sans le dire", "Je crois qu'un objet perdu est forcément volé par les lutins", "Je fais un vœu à chaque fois que je vois 11:11", "Je pense que mon chat comprend mes humeurs avant moi", "Je crois qu'on retient mieux quand on lit à voix haute en marchant", "Je crois qu'il y a une chanson destinée à chaque trajet en voiture", "Je pense que mes plantes m'écoutent plus que mes enfants"]}, {"name": "🛒 Achats compulsifs", "secrets": ["J'ai acheté un livre et je ne l'ai jamais ouvert", "J'ai acheté un appareil dont j'ignore encore l'usage", "J'ai acheté un vélo qui n'a jamais quitté la cave", "J'ai trois paires de chaussures identiques que je porte rarement", "Je joue à un jeu mobile mais je l'assume pas", "J'ai acheté un cours en ligne et je n'ai vu que la première leçon", "J'ai un abonnement à une appli que je n'ouvre jamais", "J'ai acheté une plante en sachant que je la tuerais", "J'ai acheté un instrument de musique sans savoir en jouer", "J'ai un robot cuisine qui ne sert qu'à faire des smoothies"]}, {"name": "🙊 Mes guilty pleasures", "secrets": ["Je regarde une émission de télé-réalité en boucle", "J'écoute des podcasts de potins en faisant le ménage", "Je relis le même livre plusieurs fois par an en cachette", "Je connais par cœur les paroles d'une pub", "Je regarde des tutoriels de choses que je ne ferai jamais", "Je regarde des compilations de chutes en boucle en riant seul", "Je connais encore les génériques de mes dessins animés d'enfance", "J'ai déjà regardé 4 heures de 'juste une vidéo de plus'", "J'écoute en boucle une chanson que je trouvais ringarde à 14 ans", "Je collectionne les pubs de Noël"]}, {"name": "🔄 Si je pouvais recommencer", "secrets": ["Je referais mes études, mais dans une autre matière", "Je dirais 'oui' à une opportunité que j'ai refusée", "Je quitterais cette ville plus tôt", "Je n'épouserais pas la même personne (chut)", "J'apprendrais une langue plus rare que celle que j'ai choisie", "Je dirais 'je t'aime' à quelqu'un que j'ai laissé partir", "Je ne couperais pas les ponts avec un vieil ami", "Je vendrais tout pour partir voyager un an", "Je ne dirais pas ce que j'ai dit ce jour-là, je le pense encore", "Je ferais le métier que j'avais à dix ans dans ma tête"]}]}};
+const SESSION_KEYS = Object.keys(SESSIONS); // S01..S05
+
+// ===================== HELPERS =====================
+const el = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+const now = () => Date.now();
+const escapeHtml = s => String(s||'').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const fmtTime = ms => {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms/1000);
+  const m = Math.floor(s/60);
+  const sec = s % 60;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+};
+const uid = () => Math.random().toString(36).slice(2,10);
+const sanitizeName = s => String(s||'').trim().slice(0,20);
+
+function newPlayerId(){
+  let pid = localStorage.getItem('ls_secret_pid');
+  if (!pid) {
+    pid = 'p_' + uid() + uid();
+    localStorage.setItem('ls_secret_pid', pid);
+  }
+  return pid;
+}
+
+function toggleFullscreen(){
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(()=>{});
+}
+
+// ===================== MODE DETECTION =====================
+const params = new URLSearchParams(location.search);
+const MODE = params.get('mode') || 'joueur';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Injecter version partout
+  $$('.h-version,.j-version,#a-version').forEach(e => {
+    if (!e.textContent.includes(VERSION)) e.textContent = 'v' + VERSION;
+  });
+
+  if (MODE === 'projection') {
+    el('proj').classList.add('active');
+    initProjection();
+  } else if (MODE === 'admin') {
+    el('adm').classList.add('active');
+    initAdmin();
+  } else {
+    el('joueur').classList.add('active');
+    initJoueur();
+  }
+
+  // Fullscreen touche F sur projection
+  if (MODE === 'projection') {
+    document.addEventListener('keydown', e => {
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      el('proj').classList.toggle('fs', !!document.fullscreenElement);
+    });
+  }
+});
+
+// ===================== SCREEN WAKE LOCK =====================
+// Bloque la mise en veille de l'écran pendant le jeu (mobile + projection desktop).
+// API standard, supportée sur Chrome Android et Safari iOS 16.4+, nécessite HTTPS (✓ GitHub Pages).
+let wakeLock = null;
+
+async function requestWakeLock(){
+  if (!('wakeLock' in navigator)) return;
+  if (wakeLock) return; // déjà actif
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch(e) { /* refus ou non supporté, on ignore silencieusement */ }
+}
+
+// Re-demander le wake lock quand la page redevient visible (auto-release sur background)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+
+// Premier user gesture → demander le wake lock
+document.addEventListener('click', requestWakeLock);
+document.addEventListener('touchstart', requestWakeLock);
+document.addEventListener('keydown', requestWakeLock);
+
+// ===================== SOUND ENGINE =====================
+// Web Audio API : sons synthétiques générés à la volée, pas de fichier externe.
+// L'AudioContext est unlocked au premier user gesture (mobile requirement).
+let audioCtx = null;
+let audioEnabled = true;
+
+function ensureAudio(){
+  if (!audioEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e){ audioEnabled = false; }
+}
+// Réveil sur TOUTE interaction (pas {once:true}) — utile si la première tentative échoue.
+// audioCtx.resume() est idempotent et bon marché.
+document.addEventListener('click', ensureAudio);
+document.addEventListener('touchstart', ensureAudio);
+document.addEventListener('keydown', ensureAudio);
+
+function playTone(freq, duration, type, startDelay, gainVal){
+  if (!audioEnabled || !audioCtx) return;
+  type = type || 'sine';
+  startDelay = startDelay || 0;
+  gainVal = gainVal == null ? 0.15 : gainVal;
+  const t0 = audioCtx.currentTime + startDelay;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(gainVal, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0 + duration + 0.05);
+}
+
+// ============== MUSIQUE D'AMBIANCE ==============
+// Boucle pad ambient en sinus très doux, 4 accords de 4s, gain très bas (0.02-0.03)
+// Tourne uniquement sur la projection pour éviter la cacophonie multi-mobiles
+let ambientPlaying = false;
+let ambientTimer = null;
+const AMBIENT_CHORDS = [
+  [220, 277.18, 329.63],   // A min7 (A3, C#4, E4)
+  [196, 246.94, 293.66],   // G maj (G3, B3, D4)
+  [174.61, 220, 261.63],   // F maj (F3, A3, C4)
+  [164.81, 207.65, 261.63] // E min7 (E3, G#3, C4)
+];
+
+function startAmbient(){
+  if (!audioEnabled || !audioCtx || ambientPlaying) return;
+  if (audioCtx.state === 'suspended'){ audioCtx.resume(); }
+  ambientPlaying = true;
+  let ci = 0;
+  const playChord = () => {
+    if (!ambientPlaying || !audioCtx) return;
+    const ch = AMBIENT_CHORDS[ci];
+    const dur = 4;
+    const t0 = audioCtx.currentTime;
+    ch.forEach((freq, i) => {
+      try {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sine';
+        o.frequency.value = freq;
+        // attack 1.4s, hold, release 1.4s — très enveloppé pour un effet pad
+        const gainTarget = 0.025 - i * 0.003;  // notes graves un poil plus fortes
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(gainTarget, t0 + 1.4);
+        g.gain.setValueAtTime(gainTarget, t0 + dur - 1.4);
+        g.gain.linearRampToValueAtTime(0, t0 + dur);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(t0);
+        o.stop(t0 + dur + 0.05);
+      } catch(e){}
+    });
+    ci = (ci + 1) % AMBIENT_CHORDS.length;
+    ambientTimer = setTimeout(playChord, dur * 1000);
+  };
+  playChord();
+}
+
+function stopAmbient(){
+  ambientPlaying = false;
+  if (ambientTimer){ clearTimeout(ambientTimer); ambientTimer = null; }
+}
+
+window._startAmbient = startAmbient;
+window._stopAmbient = stopAmbient;
+
+const SOUNDS = {
+  tap: () => playTone(880, 0.04, 'sine', 0, 0.08),
+  validate: () => { playTone(660, 0.08, 'sine'); playTone(880, 0.16, 'sine', 0.08); },
+  tick: () => playTone(523, 0.08, 'square', 0, 0.1),
+  go: () => {
+    playTone(659, 0.1, 'square', 0, 0.16);
+    playTone(880, 0.1, 'square', 0.1, 0.16);
+    playTone(1320, 0.3, 'square', 0.2, 0.18);
+  },
+  duelStart: () => {
+    playTone(330, 0.08, 'sawtooth', 0, 0.12);
+    playTone(440, 0.1, 'sawtooth', 0.08, 0.12);
+    playTone(660, 0.18, 'sawtooth', 0.18, 0.14);
+  },
+  win: () => {
+    playTone(523, 0.08, 'sine', 0, 0.18);
+    playTone(659, 0.08, 'sine', 0.1, 0.18);
+    playTone(784, 0.1, 'sine', 0.2, 0.18);
+    playTone(1046, 0.32, 'sine', 0.32, 0.22);
+  },
+  lose: () => {
+    playTone(440, 0.12, 'triangle', 0, 0.16);
+    playTone(330, 0.18, 'triangle', 0.12, 0.16);
+    playTone(220, 0.3, 'triangle', 0.28, 0.14);
+  },
+  reveal: () => {
+    playTone(880, 0.06, 'sine', 0, 0.14);
+    playTone(660, 0.06, 'sine', 0.06, 0.14);
+    playTone(880, 0.06, 'sine', 0.12, 0.14);
+    playTone(1320, 0.28, 'sine', 0.2, 0.2);
+  },
+  hint: () => {
+    playTone(1100, 0.08, 'triangle', 0, 0.14);
+    playTone(1320, 0.14, 'triangle', 0.08, 0.14);
+  },
+  end: () => {
+    playTone(523, 0.15, 'sine', 0, 0.2);
+    playTone(659, 0.15, 'sine', 0.18, 0.2);
+    playTone(784, 0.15, 'sine', 0.36, 0.2);
+    playTone(1046, 0.4, 'sine', 0.54, 0.22);
+  }
+};
+
+function play(name){
+  ensureAudio();
+  if (!audioEnabled || !audioCtx) return;
+  if (SOUNDS[name]) { try { SOUNDS[name](); } catch(e){} }
+}
+window._play = play;
+
+// ===================== COUNTDOWN GLOBAL =====================
+// Overlay #countdown au niveau body — accessible depuis projection ET joueur
+let _countdownActive = false;
+function globalCountdown(){
+  if (_countdownActive) return;
+  _countdownActive = true;
+  const cd = el('countdown'); const num = el('cd-num');
+  if (!cd || !num){ _countdownActive = false; return; }
+  cd.classList.add('show');
+  let n = 3; num.textContent = n; num.className = 'cd-num';
+  play('tick');
+  const iv = setInterval(() => {
+    n--;
+    if (n > 0){ num.textContent = n; play('tick'); }
+    else if (n === 0){ num.textContent = 'GO !'; num.className = 'cd-go'; play('go'); }
+    else { clearInterval(iv); cd.classList.remove('show'); _countdownActive = false; }
+  }, 1000);
+}
+window._countdown = globalCountdown;
+
+// ===================== DEFAULT STATE =====================
+const DEFAULT_STATE = {
+  session: 'S01',
+  mode: 'waiting',        // waiting | preparing | running | ended
+  sessionStartAt: 0,
+  sessionEndAt: 0,
+  settings: {
+    sessionMin: 20,
+    roundSec: 120
+  }
+};
+
+// Cache local de l'état lu
+let STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let PLAYERS = {};
+let DUELS = {};
+let HINTS = {};
+let LAST_REVEAL = null;
+
+ROOT.child('state').on('value', s => {
+  const v = s.val();
+  STATE = v ? Object.assign({}, DEFAULT_STATE, v, { settings: Object.assign({}, DEFAULT_STATE.settings, v.settings||{}) }) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+  onStateChange();
+});
+ROOT.child('players').on('value', s => {
+  PLAYERS = s.val() || {};
+  onPlayersChange();
+});
+ROOT.child('duels').on('value', s => {
+  DUELS = s.val() || {};
+  onDuelsChange();
+});
+ROOT.child('hints').on('value', s => {
+  HINTS = s.val() || {};
+  onHintsChange();
+});
+ROOT.child('lastReveal').on('value', s => {
+  LAST_REVEAL = s.val();
+  onLastRevealChange();
+});
+
+// Callbacks neutres par défaut, surchargés par chaque mode
+let onStateChange = ()=>{};
+let onPlayersChange = ()=>{};
+let onDuelsChange = ()=>{};
+let onHintsChange = ()=>{};
+let onLastRevealChange = ()=>{};
+
+// Compute online from lastSeen
+function isOnline(p){
+  if (!p || !p.lastSeen) return false;
+  return (now() - p.lastSeen) < 20000;
+}
+
+// Sort players by score desc
+function sortedPlayers(){
+  return Object.entries(PLAYERS)
+    .map(([id,p]) => Object.assign({id}, p))
+    .sort((a,b) => (b.score||0) - (a.score||0) || (a.name||'').localeCompare(b.name||''));
+}
+
+// Get active duels (running)
+function activeDuels(){
+  return Object.entries(DUELS)
+    .map(([id,d]) => Object.assign({id}, d))
+    .filter(d => d.status !== 'ended');
+}
+
+// Sort players by score desc
+
+// Find duel where player participates
+function playerCurrentDuel(pid){
+  return activeDuels().find(d => d.pidA === pid || d.pidB === pid);
+}
+
+
+// ============================================================
+// PROJECTION
+// ============================================================
+let projQrBig = null, projQrMini = null;
+let projTimerInterval = null;
+
+const RING_CIRC = 276.46; // 2π × 44
+
+function initProjection(){
+  const base = location.origin + location.pathname;
+  el('p-qr-url').textContent = base.replace(/^https?:\/\//,'').replace(/\/$/,'');
+  try { projQrBig = new QRCode(el('p-qr-big'), {text:base, width:280, height:280, colorLight:'#ffffff', colorDark:'#05050f'}); } catch(e){}
+  try { projQrMini = new QRCode(el('p-qr-mini'), {text:base, width:120, height:120, colorLight:'#ffffff', colorDark:'#05050f'}); } catch(e){}
+
+  onStateChange = projUpdateState;
+  onPlayersChange = projUpdatePlayers;
+  onDuelsChange = projUpdateDuels;
+  onLastRevealChange = projUpdateLastReveal;
+  onHintsChange = ()=>{};
+
+  // Bouton paramètres depuis projection
+  window._openSettings = projOpenSettings;
+  window._closeSettings = () => el('settings-modal').classList.remove('show');
+  window._saveSettings = projSaveSettings;
+  // Toggle son (déverrouille l'AudioContext sur desktop si pas encore fait)
+  window._toggleSound = projToggleSound;
+
+  projTimerInterval = setInterval(projTick, 250);
+  setInterval(projWatchAudioLock, 800);
+}
+
+function projToggleSound(){
+  audioEnabled = !audioEnabled;
+  const btn = el('p-sound-btn');
+  if (audioEnabled){
+    ensureAudio();
+    play('tick');
+    if (btn){ btn.textContent = '🔊'; btn.classList.remove('muted'); btn.title = 'Son activé'; }
+    // Si on est déjà en session active, démarrer la musique d'ambiance
+    if (STATE.mode === 'running'){
+      setTimeout(startAmbient, 200);
+    }
+  } else {
+    stopAmbient();
+    if (btn){ btn.textContent = '🔇'; btn.classList.add('muted'); btn.title = 'Son désactivé'; }
+  }
+}
+
+// Pulser le bouton 🔊 tant que l'audio est verrouillé pour attirer l'attention
+function projWatchAudioLock(){
+  const btn = el('p-sound-btn');
+  if (!btn) return;
+  if (!audioCtx || audioCtx.state === 'suspended'){
+    btn.classList.add('attention');
+  } else {
+    btn.classList.remove('attention');
+  }
+}
+
+function projOpenSettings(){
+  const s = STATE.settings;
+  el('set-session-min').value = s.sessionMin;
+  el('set-round-sec').value = s.roundSec || 120;
+
+  // QR admin
+  const adminUrl = location.origin + location.pathname + '?mode=admin';
+  el('set-admin-url').textContent = adminUrl;
+  const qrDiv = el('set-admin-qr');
+  qrDiv.innerHTML = '';
+  try { new QRCode(qrDiv, {text: adminUrl, width: 124, height: 124, colorLight:'#ffffff', colorDark:'#05050f'}); } catch(e){}
+
+  el('settings-modal').classList.add('show');
+}
+function projSaveSettings(){
+  const u = {
+    'state/settings/sessionMin': parseInt(el('set-session-min').value, 10),
+    'state/settings/roundSec': parseInt(el('set-round-sec').value, 10)
+  };
+  ROOT.update(u).then(() => el('settings-modal').classList.remove('show'));
+}
+
+function projUpdateState(){
+  el('p-session').textContent = STATE.session;
+  const status = el('p-status');
+  status.classList.remove('live');
+  if (STATE.mode === 'running'){ status.textContent = 'EN COURS'; status.classList.add('live'); }
+  else if (STATE.mode === 'preparing'){ status.textContent = 'Préparation…'; }
+  else if (STATE.mode === 'ended'){ status.textContent = 'Session terminée'; }
+  else { status.textContent = 'En attente'; }
+  projUpdateDuels();
+}
+
+// Update ring : leftMs sur totalMs
+function updateRing(ringEl, totalMs, leftMs, opts){
+  opts = opts || {};
+  const ratio = totalMs > 0 ? Math.max(0, Math.min(1, leftMs / totalMs)) : 0;
+  const offset = RING_CIRC * (1 - ratio);
+  const fg = ringEl.querySelector('.ring-fg');
+  if (fg){
+    fg.style.strokeDashoffset = offset;
+    fg.classList.remove('warn','urgent','fast');
+    if (opts.cls) fg.classList.add(opts.cls);
+  }
+  const txt = ringEl.querySelector('.ring-text');
+  if (txt){
+    txt.classList.remove('warn','urgent','fast');
+    if (opts.cls) txt.classList.add(opts.cls);
+  }
+}
+
+function projTick(){
+  // Session timer (header)
+  const ring = el('p-timer-ring');
+  const txt = el('p-timer-text');
+  if (STATE.mode === 'running' && STATE.sessionEndAt){
+    const total = STATE.settings.sessionMin * 60000;
+    const left = STATE.sessionEndAt - now();
+    txt.textContent = fmtTime(left);
+    let cls = '';
+    if (left < 60000) cls = 'urgent';
+    else if (left < 180000) cls = 'warn';
+    updateRing(ring, total, left, {cls});
+    if (left <= 0 && STATE.sessionEndAt > 0){
+      ROOT.child('state').update({ mode:'ended' });
+    }
+  } else if (STATE.mode === 'ended'){
+    txt.textContent = 'FIN';
+    updateRing(ring, 1, 0, {});
+  } else {
+    txt.textContent = '—';
+    updateRing(ring, 1, 1, {});
+  }
+
+  // Duel timers
+  document.querySelectorAll('.duel-card').forEach(card => {
+    const did = card.dataset.id;
+    const d = DUELS[did];
+    if (!d) return;
+    const timeEl = card.querySelector('.dc-time');
+    const bar = card.querySelector('.dc-progress-bar');
+
+    // Identifier le round actif
+    let rd, isAsk;
+    if (d.status === 'r1-ask' || d.status === 'r1-choose'){
+      rd = d.r1;
+      isAsk = d.status === 'r1-ask';
+    } else if (d.status === 'r2-ask' || d.status === 'r2-choose'){
+      rd = d.r2;
+      isAsk = d.status === 'r2-ask';
+    } else return;
+
+    if (isAsk && rd){
+      const total = rd.endAt - rd.startAt;
+      const leftMs = rd.endAt - now();
+      if (timeEl) timeEl.textContent = fmtTime(Math.max(0, leftMs));
+      if (bar){
+        const ratio = total > 0 ? Math.max(0, Math.min(1, leftMs / total)) : 0;
+        bar.style.width = (ratio * 100) + '%';
+        bar.classList.remove('warn','fast');
+        if (leftMs < 10000) bar.classList.add('warn');
+      }
+    } else {
+      // Phase choose : pas de timer, indiquer "Choisit…"
+      if (timeEl) timeEl.textContent = '🎯';
+      if (bar) bar.style.width = '0%';
+    }
+  });
+}
+
+function projUpdatePlayers(){
+  const list = sortedPlayers();
+  const count = list.length;
+  const onlineCount = list.filter(p=>isOnline(p)).length;
+  el('p-pcount').textContent = onlineCount + '/' + count;
+  if (!count){
+    el('p-players').innerHTML = '<div class="pl-empty">Aucun joueur inscrit pour le moment.<br>Scannez le QR code →</div>';
+    return;
+  }
+  const currentDuels = activeDuels();
+  const inDuelIds = new Set();
+  currentDuels.forEach(d => { inDuelIds.add(d.pidA); inDuelIds.add(d.pidB); });
+  el('p-players').innerHTML = list.map(p => {
+    const online = isOnline(p);
+    const inDuel = inDuelIds.has(p.id);
+    const hasSecret = !!(p.registeredSessions && p.registeredSessions[STATE.session]);
+    let cls = '', statusTxt = '';
+    if (inDuel){ cls = 'in-duel'; statusTxt = 'EN DUEL'; }
+    else if (online && hasSecret){ cls = 'online ready'; statusTxt = 'PRÊT'; }
+    else if (online){ cls = 'online'; statusTxt = 'CONNECTÉ'; }
+    const statusHtml = statusTxt ? `<div class="pl-status">${statusTxt}</div>` : '';
+    return `<div class="pl-row ${cls}">
+      <div class="pl-dot"></div>
+      <div class="pl-name">${escapeHtml(p.name)}</div>
+      ${statusHtml}
+      <div class="pl-score">${p.score||0}</div>
+    </div>`;
+  }).join('');
+}
+
+function projUpdateDuels(){
+  const duels = activeDuels();
+  const cont = el('p-duels');
+  cont.className = 'duels';
+  if (!duels.length){
+    cont.classList.add('empty');
+    el('p-empty').style.display = '';
+    el('proj').classList.remove('qr-mini-on');
+    el('p-dtitle').textContent = 'EN ATTENTE DE DUELS';
+    el('p-dsub').textContent = STATE.mode === 'running' ? 'Les joueurs peuvent se défier' : 'Lancez la session pour commencer';
+    return;
+  }
+  cont.classList.add('n'+Math.min(8,duels.length));
+  el('p-empty').style.display = 'none';
+  el('proj').classList.add('qr-mini-on');
+  el('p-dtitle').textContent = 'DUELS EN COURS';
+  el('p-dsub').textContent = duels.length + ' duel' + (duels.length>1?'s':'') + ' actif' + (duels.length>1?'s':'');
+
+  cont.innerHTML = duels.map(d => {
+    const a = PLAYERS[d.pidA]?.name || '?';
+    const b = PLAYERS[d.pidB]?.name || '?';
+    const isR1 = d.status === 'r1-ask' || d.status === 'r1-choose';
+    const isAsk = d.status.endsWith('-ask');
+    const isChoose = d.status.endsWith('-choose');
+    const askerName = isR1 ? a : b;
+    const aPts = (d.r1?.pickedIdx >= 0 && d.r1.correct) ? 1 : 0;
+    const bPts = (d.r2?.pickedIdx >= 0 && d.r2.correct) ? 1 : 0;
+
+    let statusTxt;
+    if (isAsk) statusTxt = `⏱ ${escapeHtml(askerName)} INTERROGE`;
+    else statusTxt = `🎯 ${escapeHtml(askerName)} CHOISIT…`;
+
+    const roundTag = isR1 ? 'MANCHE 1/2' : 'MANCHE 2/2';
+
+    return `<div class="duel-card" data-id="${d.id}">
+      <div class="dc-round-tag">${roundTag}</div>
+      <div class="dc-content">
+        <div class="dc-name left">${escapeHtml(a)}<span class="dc-score-mini"> ${aPts}</span></div>
+        <div class="dc-x">⚔</div>
+        <div class="dc-name right">${escapeHtml(b)}<span class="dc-score-mini"> ${bPts}</span></div>
+        <div class="dc-time">—</div>
+        <div class="dc-status">${statusTxt}</div>
+      </div>
+      <div class="dc-progress"><div class="dc-progress-bar"></div></div>
+    </div>`;
+  }).join('');
+  projTick();
+}
+
+function projUpdateLastReveal(){
+  if (!LAST_REVEAL || !LAST_REVEAL.at){
+    el('p-last').classList.remove('show'); return;
+  }
+  if (now() - LAST_REVEAL.at < 60000){
+    el('p-last').classList.add('show');
+    el('p-last-who').textContent = (PLAYERS[LAST_REVEAL.who]?.name || '?') + ' →';
+    el('p-last-secret').textContent = '"' + LAST_REVEAL.secret + '"';
+    setTimeout(() => {
+      if (LAST_REVEAL && now() - LAST_REVEAL.at >= 60000) el('p-last').classList.remove('show');
+    }, 60100);
+  }
+  if (LAST_REVEAL && (now() - LAST_REVEAL.at < 4000)) showRevelation(LAST_REVEAL);
+}
+
+function showRevelation(r){
+  el('rev-who').textContent = PLAYERS[r.who]?.name || '?';
+  el('rev-target').textContent = PLAYERS[r.target]?.name || '?';
+  el('rev-secret-text').textContent = r.secret;
+  el('rev-fast').style.display = r.fast ? '' : 'none';
+  el('revelation').classList.add('show');
+  play('reveal');
+  setTimeout(() => el('revelation').classList.remove('show'), 4000);
+}
+
+let _lastMode = null;
+function projWatchModeForCountdown(){
+  if (_lastMode && _lastMode !== 'running' && STATE.mode === 'running'){
+    globalCountdown();
+    // Démarrer la musique d'ambiance après le countdown 3-2-1-GO!
+    setTimeout(() => {
+      if (STATE.mode === 'running') startAmbient();
+    }, 4500);
+  }
+  if (_lastMode === 'running' && STATE.mode === 'ended'){
+    play('end');
+    stopAmbient();
+  }
+  if (STATE.mode !== 'running'){
+    stopAmbient();
+  }
+  _lastMode = STATE.mode;
+}
+const _origPUS = projUpdateState;
+projUpdateState = function(){ _origPUS(); projWatchModeForCountdown(); };
+
+// Détecter l'apparition d'un nouveau duel pour jouer un son
+let _knownDuels = new Set();
+const _origPUD = projUpdateDuels;
+projUpdateDuels = function(){
+  const before = new Set(_knownDuels);
+  const current = activeDuels().map(d => d.id);
+  // Nouveau duel détecté (status active) → play duelStart
+  let hasNew = false;
+  current.forEach(id => {
+    if (!before.has(id)) hasNew = true;
+  });
+  _knownDuels = new Set(current);
+  if (hasNew) play('duelStart');
+  _origPUD();
+};
+
+
+// ============================================================
+// ADMIN
+// ============================================================
+let selectedSession = null;
+
+function initAdmin(){
+  el('a-session-btns').innerHTML = SESSION_KEYS.map(k =>
+    `<button class="session-btn" data-s="${k}">${k}</button>`
+  ).join('');
+  el('a-session-btns').addEventListener('click', e => {
+    const b = e.target.closest('.session-btn');
+    if (b) admSelectSession(b.dataset.s);
+  });
+
+  el('a-btn-prepare').addEventListener('click', admPrepare);
+  el('a-btn-start').addEventListener('click', admStart);
+  el('a-btn-stop').addEventListener('click', admStop);
+
+  // Actions globales (boutons visibles dans la box Actions)
+  window._exportCSV = admExportCSV;
+  window._forceEndDuels = admForceEndDuels;
+  window._resetScores = () => confirmDialog('Reset des scores ?', 'Les scores reviennent à 0. Les joueurs et leur inscription restent.', [
+    {label:'Annuler', cls:'btn-ghost'},
+    {label:'Reset scores', cls:'btn-red', action: doResetScores}
+  ]);
+  window._fullReset = () => confirmDialog('Reset complet ?', 'Cette action efface tous les joueurs, duels, scores et indices. Irréversible.', [
+    {label:'Annuler', cls:'btn-ghost'},
+    {label:'Tout reset', cls:'btn-red', action: doFullReset}
+  ]);
+  window._openProj = () => window.open(location.pathname + '?mode=projection', '_blank');
+  window._toggleSecrets = admToggleSecrets;
+
+  // Le bouton Paramètres a été déplacé sur la vue projection.
+  // L'admin n'a pas accès direct aux paramètres ici (ouvrir la projection pour les modifier).
+
+  onStateChange = admUpdateState;
+  onPlayersChange = admUpdatePlayers;
+  onHintsChange = ()=>{};
+  onDuelsChange = ()=>{};
+}
+
+function admSelectSession(s){
+  selectedSession = s;
+  $$('.session-btn').forEach(b => b.classList.toggle('active', b.dataset.s === s));
+}
+
+function admUpdateState(){
+  if (!selectedSession) selectedSession = STATE.session;
+  $$('.session-btn').forEach(b => b.classList.toggle('active', b.dataset.s === selectedSession));
+
+  const dot = el('a-sdot');
+  const lbl = el('a-slabel');
+  dot.className = 'status-dot';
+  const m = STATE.mode;
+  if (m === 'running'){
+    dot.classList.add('live');
+    const left = Math.max(0, STATE.sessionEndAt - now());
+    lbl.textContent = `🔴 EN COURS — ${STATE.session} (${fmtTime(left)} restant)`;
+  } else if (m === 'preparing'){
+    dot.classList.add('preparing');
+    lbl.textContent = `🟡 Préparation — ${STATE.session}`;
+  } else if (m === 'ended'){
+    lbl.textContent = `⏹ Terminé — ${STATE.session}`;
+  } else {
+    lbl.textContent = `⚪ En attente — ${STATE.session}`;
+  }
+  el('a-btn-start').disabled = (m === 'running');
+  el('a-btn-stop').disabled = !(m === 'running' || m === 'preparing');
+  setTimeout(admUpdateState, 1000);
+}
+
+function admUpdatePlayers(){
+  const list = sortedPlayers();
+  el('a-pcount').textContent = `(${list.filter(p=>isOnline(p)).length}/${list.length})`;
+  if (!list.length){
+    el('a-players').innerHTML = '<div class="empty-msg">Aucun joueur inscrit</div>';
+    return;
+  }
+  el('a-players').innerHTML = list.map(p => {
+    const online = isOnline(p);
+    const reg = (p.registeredSessions && p.registeredSessions[STATE.session]) || null;
+    const hasSecret = !!reg;
+    let stateCls = 'offline';
+    let stateIcon = '⚫';
+    let stateLabel = '';
+    if (online && hasSecret) { stateCls = 'ready'; stateIcon = '🟢'; stateLabel = '<span style="color:var(--green);font-size:.75rem;font-weight:700;margin-left:6px;">PRÊT</span>'; }
+    else if (online) { stateCls = 'connected-only'; stateIcon = '🟠'; stateLabel = '<span style="color:var(--orange);font-size:.75rem;font-weight:700;margin-left:6px;">CONNECTÉ</span>'; }
+    return `<div class="a-player ${stateCls}">
+      <div class="a-player-name">${stateIcon} ${escapeHtml(p.name)}${stateLabel}</div>
+      <div class="a-player-cat">${reg?escapeHtml(reg.cat):'<em style="color:var(--text3)">Pas inscrit dans cette session</em>'}</div>
+      ${reg?`<div class="a-player-secret">"${escapeHtml(reg.secret)}"</div>`:''}
+      <div class="a-player-score">Score : ${p.score||0} pt</div>
+    </div>`;
+  }).join('');
+}
+
+function admToggleSecrets(){
+  const a = el('adm');
+  a.classList.toggle('show-secrets');
+  const btn = el('a-btn-secrets');
+  if (a.classList.contains('show-secrets')){
+    btn.textContent = '🙈 Masquer';
+  } else {
+    btn.textContent = '👁 Secrets';
+  }
+}
+
+function admPrepare(){
+  if (!selectedSession) selectedSession = STATE.session;
+  if (selectedSession !== STATE.session && Object.keys(PLAYERS).length > 0){
+    confirmDialog(
+      'Changement de session',
+      `Tu passes de ${STATE.session} à ${selectedSession}. Veux-tu déconnecter tous les joueurs ?`,
+      [
+        {label:'Garder connectés', cls:'btn-ghost', action: () => doPrepare(false)},
+        {label:'Déconnecter tous', cls:'btn-red', action: () => doPrepare(true)},
+      ]
+    );
+  } else {
+    doPrepare(false);
+  }
+}
+
+function doPrepare(disconnectAll){
+  const updates = {
+    'state/session': selectedSession,
+    'state/mode': 'preparing',
+    'state/sessionStartAt': 0,
+    'state/sessionEndAt': 0,
+  };
+  Object.keys(PLAYERS).forEach(pid => {
+    updates['players/'+pid+'/score'] = 0;
+    updates['players/'+pid+'/streak'] = 0;
+    if (disconnectAll){ updates['players/'+pid+'/lastSeen'] = 0; }
+  });
+  updates['duels'] = null;
+  updates['hints'] = null;
+  updates['lastReveal'] = null;
+  ROOT.update(updates);
+}
+
+function admStart(){
+  const settings = STATE.settings;
+  const startAt = now();
+  const endAt = startAt + settings.sessionMin * 60000;
+  ROOT.child('state').update({
+    session: selectedSession || STATE.session,
+    mode: 'running',
+    sessionStartAt: startAt,
+    sessionEndAt: endAt
+  });
+}
+
+function admStop(){
+  ROOT.child('state').update({ mode:'ended' });
+  doForceEndDuels();
+}
+
+function admForceEndDuels(){ doForceEndDuels(); }
+
+function doForceEndDuels(){
+  const updates = {};
+  Object.entries(DUELS).forEach(([id,d]) => {
+    if (d.status === 'active' || d.status === 'pending'){
+      updates['duels/'+id+'/status'] = 'ended';
+      updates['duels/'+id+'/result'] = 'expired';
+      updates['duels/'+id+'/endedAt'] = now();
+    }
+  });
+  if (Object.keys(updates).length) ROOT.update(updates);
+}
+
+function doResetScores(){
+  const u = {};
+  Object.keys(PLAYERS).forEach(pid => {
+    u['players/'+pid+'/score'] = 0;
+    u['players/'+pid+'/streak'] = 0;
+  });
+  u['duels'] = null;
+  u['hints'] = null;
+  u['lastReveal'] = null;
+  ROOT.update(u);
+}
+
+function doFullReset(){
+  ROOT.update({
+    state: DEFAULT_STATE,
+    players: null,
+    duels: null,
+    hints: null,
+    lastReveal: null
+  });
+}
+
+function admExportCSV(){
+  const rows = [['Joueur','Score','Session','Catégorie','Secret','Online']];
+  sortedPlayers().forEach(p => {
+    const reg = (p.registeredSessions && p.registeredSessions[STATE.session]) || {};
+    rows.push([p.name, p.score||0, STATE.session, reg.cat||'', reg.secret||'', isOnline(p)?'oui':'non']);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `secretstory_${STATE.session}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function confirmDialog(title, msg, actions){
+  el('cf-title').textContent = title;
+  el('cf-msg').textContent = msg;
+  el('cf-actions').innerHTML = '';
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'btn ' + (a.cls||'btn-ghost');
+    b.textContent = a.label;
+    b.onclick = () => {
+      el('confirm-modal').classList.remove('show');
+      if (a.action) a.action();
+    };
+    el('cf-actions').appendChild(b);
+  });
+  el('confirm-modal').classList.add('show');
+}
+
+
+// ============================================================
+// JOUEUR (mobile)
+// ============================================================
+const PID = newPlayerId();
+let joinSelectedCat = null;
+let joinSelectedSecret = null;
+let currentScreen = 's-join';
+let heartbeatInterval = null;
+let duelTimerInterval = null;
+let myCurrentDuel = null;
+let lastResultShown = null;
+let _renderedJoinSession = null;
+
+function initJoueur(){
+  window._submitName = joueurSubmitName;
+  window._validateSecret = joueurValidateSecret;
+  window._backCats = joueurBackCats;
+  window._pickRandom = joueurPickRandom;
+  window._pickAnswer = joueurPickAnswer;
+  window._closeResult = () => el('ov-result').classList.remove('show');
+  window._disconnect = joueurDisconnect;
+
+  el('j-name').addEventListener('input', joueurUpdateNameButton);
+
+  onStateChange = joueurOnState;
+  onPlayersChange = joueurOnPlayers;
+  onDuelsChange = joueurOnDuels;
+  onHintsChange = ()=>{};
+  onLastRevealChange = ()=>{};
+
+  joueurHeartbeat();
+  heartbeatInterval = setInterval(joueurHeartbeat, 10000);
+  const lastName = localStorage.getItem('ls_secret_name');
+  if (lastName) {
+    el('j-name').value = lastName;
+    joueurUpdateNameButton();
+  }
+  duelTimerInterval = setInterval(joueurTick, 250);
+}
+
+function joueurHeartbeat(){
+  const me = PLAYERS[PID];
+  if (me) ROOT.child('players/'+PID+'/lastSeen').set(now());
+}
+
+function showScreen(id){
+  $$('#joueur .screen').forEach(s => s.classList.toggle('active', s.id === id));
+  currentScreen = id;
+}
+
+let _joueurLastMode = null;
+
+function joueurOnState(){
+  // Détecter le démarrage de session pour countdown 3-2-1-GO! sur le téléphone
+  if (_joueurLastMode && _joueurLastMode !== 'running' && STATE.mode === 'running'){
+    globalCountdown();
+  }
+  _joueurLastMode = STATE.mode;
+
+  const me = PLAYERS[PID];
+  const reg = me && me.registeredSessions && me.registeredSessions[STATE.session];
+
+  if (STATE.mode === 'ended'){ joueurShowEnd(); return; }
+
+  // Cas 1 : pas inscrit du tout → écran 1 (nom)
+  if (!me){
+    showScreen('s-join');
+    joueurUpdateNameButton();
+    return;
+  }
+
+  // Cas 2 : inscrit (nom OK) mais pas de secret pour cette session → écran 2 (cat + secret)
+  if (!reg){
+    el('j2-myname').textContent = me.name;
+    el('j2-sub').textContent = `Session ${STATE.session} — Choisis ta catégorie et ton secret`;
+    if (_renderedJoinSession !== STATE.session){
+      _renderedJoinSession = STATE.session;
+      joueurRenderCats();
+    }
+    showScreen('s-join-secret');
+    return;
+  }
+  _renderedJoinSession = null;
+
+  // Cas 3 : inscrit et avec secret → wait / play / duel
+  el('w-name').textContent = me.name;
+  el('w-secret').textContent = reg.secret;
+
+  if (STATE.mode === 'running'){
+    if (myCurrentDuel) showScreen('s-duel');
+    else joueurShowPlay();
+  } else {
+    showScreen('s-wait');
+    const c = Object.values(PLAYERS).filter(p => p.registeredSessions && p.registeredSessions[STATE.session]).length;
+    el('w-count').textContent = c;
+    el('w-msg').textContent = STATE.mode === 'preparing'
+      ? `L'admin prépare la session ${STATE.session}…`
+      : `En attente du lancement de la session ${STATE.session}…`;
+  }
+}
+
+function joueurOnPlayers(){
+  joueurOnState();
+  if (currentScreen === 's-play') joueurRefreshPlay();
+}
+
+function joueurOnDuels(){
+  const mine = playerCurrentDuel(PID);
+  const prev = myCurrentDuel;
+  myCurrentDuel = mine ? mine.id : null;
+  if (!prev && mine){ joueurEnterDuel(mine); }
+  else if (prev && !mine){
+    const lastDuel = DUELS[prev];
+    if (lastDuel && lastDuel.status === 'ended') joueurShowDuelEnd(lastDuel, lastDuel.pidA === PID);
+    if (STATE.mode === 'running') joueurShowPlay();
+  } else if (prev && mine && DUELS[mine.id]){
+    joueurUpdateDuelUI(DUELS[mine.id]);
+  }
+  joueurOnState();
+}
+
+// -------- INSCRIPTION --------
+function joueurRenderCats(){
+  const sess = SESSIONS[STATE.session];
+  if (!sess){ el('j-cats-grid').innerHTML = '<div class="empty-msg">Session inconnue</div>'; return; }
+  el('j-cats-grid').innerHTML = sess.categories.map((c,i) =>
+    `<button class="cat-btn" data-i="${i}">${escapeHtml(c.name)}</button>`
+  ).join('');
+  el('j-cats-grid').querySelectorAll('.cat-btn').forEach(b => {
+    b.onclick = () => joueurSelectCat(parseInt(b.dataset.i,10));
+  });
+  joinSelectedCat = null; joinSelectedSecret = null;
+  el('j-step-cats').style.display = '';
+  el('j-step-secrets').style.display = 'none';
+  joueurUpdateSecretButton();
+}
+
+function joueurSelectCat(i){
+  joinSelectedCat = i; joinSelectedSecret = null;
+  const sess = SESSIONS[STATE.session];
+  const cat = sess.categories[i];
+  el('j-cat-title').textContent = cat.name;
+  // Tous les secrets restent sélectionnables (plusieurs joueurs peuvent avoir le même)
+  // — éviter de griller les choix des autres aurait été de la triche
+  el('j-secrets-list').innerHTML = cat.secrets.map((s,idx) =>
+    `<button class="secret-btn" data-i="${idx}">${escapeHtml(s)}</button>`
+  ).join('');
+  el('j-secrets-list').querySelectorAll('.secret-btn').forEach(b => {
+    b.onclick = () => joueurSelectSecret(parseInt(b.dataset.i,10));
+  });
+  el('j-step-cats').style.display = 'none';
+  el('j-step-secrets').style.display = '';
+}
+
+function joueurSelectSecret(i){
+  if (joinSelectedSecret !== null) return; // déjà sélectionné, éviter double-tap
+  joinSelectedSecret = i;
+  // Feedback visuel immédiat : le secret choisi devient gold, les autres sont désactivés
+  el('j-secrets-list').querySelectorAll('.secret-btn').forEach(b => {
+    const isMe = parseInt(b.dataset.i,10) === i;
+    b.classList.toggle('active', isMe);
+    if (!isMe) b.disabled = true;
+  });
+  // Désactiver "← Changer de catégorie" et "🎲 Secret aléatoire" pendant la validation
+  document.querySelectorAll('#s-join-secret .back-cat, #s-join-secret .btn-random').forEach(b => b.disabled = true);
+  // Afficher overlay
+  el('j-validating').style.display = '';
+  // Valider après un court délai pour laisser voir le feedback
+  setTimeout(joueurValidateSecret, 250);
+}
+
+function joueurBackCats(){
+  el('j-step-cats').style.display = '';
+  el('j-step-secrets').style.display = 'none';
+  joinSelectedCat = null; joinSelectedSecret = null;
+  joueurUpdateSecretButton();
+}
+
+function joueurPickRandom(){
+  if (joinSelectedCat === null) return;
+  const sess = SESSIONS[STATE.session];
+  const cat = sess.categories[joinSelectedCat];
+  const i = Math.floor(Math.random() * cat.secrets.length);
+  joueurSelectSecret(i);
+}
+
+function joueurUpdateNameButton(){
+  const name = sanitizeName(el('j-name').value);
+  el('j-btn-name').disabled = name.length < 2;
+}
+
+// Le bouton "Valider mon secret" a été retiré : validation auto au clic sur un secret.
+// Fonction conservée comme no-op pour rester compatible avec les appels existants.
+function joueurUpdateSecretButton(){}
+
+function joueurDisconnect(){
+  if (!confirm('Te déconnecter de la partie ?\nTon inscription sera supprimée et tu reviendras à l\'écran d\'accueil.')) return;
+  // Supprimer mon entrée Firebase
+  ROOT.child('players/'+PID).remove().finally(() => {
+    // Effacer localStorage
+    localStorage.removeItem('ls_secret_pid');
+    localStorage.removeItem('ls_secret_name');
+    // Recharger pour repartir à zéro (nouveau PID, nouvel écran)
+    setTimeout(() => location.reload(), 150);
+  });
+}
+
+function joueurSubmitName(){
+  const name = sanitizeName(el('j-name').value);
+  if (name.length < 2) return;
+  localStorage.setItem('ls_secret_name', name);
+  const existing = PLAYERS[PID] || {};
+  const updates = {};
+  updates['players/'+PID+'/name'] = name;
+  updates['players/'+PID+'/lastSeen'] = now();
+  if (existing.score === undefined) updates['players/'+PID+'/score'] = 0;
+  if (existing.streak === undefined) updates['players/'+PID+'/streak'] = 0;
+  ROOT.update(updates);
+  play('validate');
+}
+
+function joueurValidateSecret(){
+  if (joinSelectedCat === null || joinSelectedSecret === null) return;
+  const sess = SESSIONS[STATE.session];
+  const cat = sess.categories[joinSelectedCat];
+  const secret = cat.secrets[joinSelectedSecret];
+  const updates = {};
+  updates['players/'+PID+'/registeredSessions/'+STATE.session] = { cat: cat.name, secret: secret };
+  updates['players/'+PID+'/lastSeen'] = now();
+  ROOT.update(updates).finally(() => {
+    setTimeout(() => { el('j-validating').style.display = 'none'; }, 200);
+  });
+  play('validate');
+}
+
+// -------- PLAY --------
+function joueurShowPlay(){ showScreen('s-play'); joueurRefreshPlay(); }
+
+function joueurRefreshPlay(){
+  const me = PLAYERS[PID];
+  const reg = me?.registeredSessions?.[STATE.session];
+  if (!reg) return;
+
+  el('pp-session-name').textContent = STATE.session;
+  el('pp-mysecret').textContent = reg.secret;
+  el('pp-score').textContent = (me.score||0) + ' pt';
+
+  // Streak
+  // Streak retirée dans la mécanique v2.2 (simplification)
+  el('pp-streak-wrap').style.display = 'none';
+
+  // Liste opposants : online + inscrits avec catégorie ET secret
+  const others = Object.entries(PLAYERS)
+    .map(([id,p]) => Object.assign({id}, p))
+    .filter(p => {
+      if (p.id === PID || !isOnline(p)) return false;
+      const reg = p.registeredSessions?.[STATE.session];
+      return !!(reg && reg.cat && reg.secret);
+    });
+
+  if (!others.length){
+    el('pp-players').innerHTML = '<div class="empty-msg">En attente d\'autres joueurs en ligne…</div>';
+    return;
+  }
+  const busyIds = new Set();
+  activeDuels().forEach(d => { busyIds.add(d.pidA); busyIds.add(d.pidB); });
+  const facedIds = getOpponentsAlreadyFaced();
+
+  el('pp-players').innerHTML = others.map(p => {
+    const busy = busyIds.has(p.id);
+    const faced = facedIds.has(p.id) && !busy;
+    const disabled = busy || faced;
+    let statusTxt;
+    if (busy) statusTxt = '⚔ en duel';
+    else if (faced) statusTxt = '✓ déjà joué';
+    else statusTxt = '⚔ défier';
+    return `<button class="opp-btn ${busy?'busy':''} ${faced?'faced':''}" data-id="${p.id}" ${disabled?'disabled':''}>
+      <span>${escapeHtml(p.name)} <span class="c-text2">· ${p.score||0} pt</span></span>
+      <span class="opp-status">${statusTxt}</span>
+    </button>`;
+  }).join('');
+  el('pp-players').querySelectorAll('.opp-btn:not([disabled])').forEach(b => {
+    b.onclick = () => joueurChallenge(b.dataset.id);
+  });
+}
+
+function resolveOppCat(d, rd, opp){
+  // Niveau 1 : la cat stockée dans le round (v2.5+)
+  if (rd?.cat) return rd.cat;
+  // Niveau 2 : catA/catB stockés au niveau du duel (v2.4+)
+  const isA = d.pidA === PID;
+  const fromDuel = isA ? d.catB : d.catA;
+  if (fromDuel) return fromDuel;
+  // Niveau 3 : lecture en direct depuis PLAYERS
+  const fromPlayer = opp?.registeredSessions?.[STATE.session]?.cat;
+  if (fromPlayer) return fromPlayer;
+  // Niveau 4 : reverse-lookup via les choices (le secret correct appartient à une cat)
+  const correctSecret = rd?.choices?.[rd?.correctIdx];
+  if (correctSecret){
+    const sess = SESSIONS[STATE.session];
+    if (sess && sess.categories){
+      for (const cat of sess.categories){
+        if (cat.secrets && cat.secrets.includes(correctSecret)) return cat.name;
+      }
+    }
+  }
+  return null;
+}
+
+// Auto-repair : si le duel manque catA/catB/r1.cat/r2.cat, les écrire depuis PLAYERS
+function ensureDuelHasCats(d, did){
+  if (!d || !did) return;
+  const updates = {};
+  if (!d.catA){
+    const myReg = PLAYERS[d.pidA]?.registeredSessions?.[STATE.session];
+    if (myReg?.cat) updates['duels/'+did+'/catA'] = myReg.cat;
+  }
+  if (!d.catB){
+    const tgReg = PLAYERS[d.pidB]?.registeredSessions?.[STATE.session];
+    if (tgReg?.cat) updates['duels/'+did+'/catB'] = tgReg.cat;
+  }
+  if (d.r1 && !d.r1.cat){
+    const tgReg = PLAYERS[d.pidB]?.registeredSessions?.[STATE.session];
+    if (tgReg?.cat) updates['duels/'+did+'/r1/cat'] = tgReg.cat;
+  }
+  if (d.r2 && !d.r2.cat){
+    const myReg = PLAYERS[d.pidA]?.registeredSessions?.[STATE.session];
+    if (myReg?.cat) updates['duels/'+did+'/r2/cat'] = myReg.cat;
+  }
+  if (Object.keys(updates).length){
+    ROOT.update(updates).catch(e => console.warn('[ensureDuelHasCats] update failed', e));
+  }
+}
+
+function getOpponentsAlreadyFaced(){
+  // Liste des joueurs avec qui PID a déjà eu un duel terminé
+  const set = new Set();
+  for (const [did, d] of Object.entries(DUELS)){
+    if (d.status === 'ended'){
+      if (d.pidA === PID) set.add(d.pidB);
+      else if (d.pidB === PID) set.add(d.pidA);
+    }
+  }
+  return set;
+}
+
+function joueurChallenge(targetId){
+  // Lecture en direct depuis Firebase pour fiabilité maximale (vs cache PLAYERS local)
+  const me = PLAYERS[PID];
+  const myReg = me?.registeredSessions?.[STATE.session];
+  if (!myReg || !myReg.cat || !myReg.secret){
+    alert("Tu dois d'abord choisir un secret avant de défier quelqu'un.");
+    return;
+  }
+
+  ROOT.child('players/'+targetId).once('value', snap => {
+    const target = snap.val();
+    const tgReg = target?.registeredSessions?.[STATE.session];
+    if (!tgReg || !tgReg.cat || !tgReg.secret){
+      alert("Cet adversaire n'a pas encore choisi son secret. Réessaie dans quelques secondes.");
+      return;
+    }
+
+    const sess = SESSIONS[STATE.session];
+    const tgCatObj = sess.categories.find(c => c.name === tgReg.cat);
+    const myCatObj = sess.categories.find(c => c.name === myReg.cat);
+    if (!tgCatObj || !myCatObj){
+      alert("Erreur de catégorie. Veuillez recharger la page.");
+      return;
+    }
+
+    // Génération des 6 réponses (1 bonne + 5 leurres tirés au hasard)
+    const r1 = makeChoices(tgReg.secret, tgCatObj.secrets);
+    const r2 = makeChoices(myReg.secret, myCatObj.secrets);
+
+    const did = 'd_' + uid();
+    const roundDurMs = (STATE.settings.roundSec || 120) * 1000;
+    const startAt = now();
+    ROOT.child('duels/'+did).set({
+      pidA: PID, pidB: targetId,
+      catA: myReg.cat,
+      catB: tgReg.cat,
+      status: 'r1-ask',
+      startAt: startAt,
+      roundDurMs: roundDurMs,
+      r1: {
+        startAt: startAt,
+        endAt: startAt + roundDurMs,
+        cat: tgReg.cat,
+        choices: r1.choices,
+        correctIdx: r1.correctIdx,
+        pickedIdx: -1,
+        correct: false,
+        endedAt: 0
+      },
+      r2: {
+        startAt: 0,
+        endAt: 0,
+        cat: myReg.cat,
+        choices: r2.choices,
+        correctIdx: r2.correctIdx,
+        pickedIdx: -1,
+        correct: false,
+        endedAt: 0
+      }
+    });
+  });
+}
+
+function makeChoices(targetSecret, allSecretsInCategory){
+  // 1 bonne réponse + 5 leurres tirés au hasard, mélangés (total : 6)
+  const others = allSecretsInCategory.filter(s => s !== targetSecret);
+  const shuffled = others.slice();
+  for (let i = shuffled.length-1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const lures = shuffled.slice(0, 5);
+  const all = [targetSecret, ...lures];
+  for (let i = all.length-1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [all[i], all[j]] = [all[j], all[i]];
+  }
+  return { choices: all, correctIdx: all.indexOf(targetSecret) };
+}
+
+// -------- DUEL --------
+function joueurEnterDuel(d){
+  showScreen('s-duel');
+  ensureDuelHasCats(d, d.id || myCurrentDuel);
+  joueurUpdateDuelUI(d);
+  play('duelStart');
+}
+
+function joueurUpdateDuelUI(d){
+  const me = PLAYERS[PID];
+  const isA = d.pidA === PID;
+  const oppId = isA ? d.pidB : d.pidA;
+  const opp = PLAYERS[oppId];
+
+  el('d-opp').textContent = opp?.name || '?';
+
+  const headline = el('d-headline');
+  const subline = el('d-headline-sub');
+  const indiceBlock = el('d-opp-cat-hint');
+
+  // Fin de duel
+  if (d.status === 'ended'){
+    joueurShowDuelEnd(d, isA);
+    return;
+  }
+
+  const isRound1 = d.status.startsWith('r1');
+  const roundKey = isRound1 ? 'r1' : 'r2';
+  const rd = d[roundKey];
+  const askerIsA = isRound1;
+  const askerIsMe = (askerIsA === isA);
+  const phaseAsk = d.status.endsWith('-ask');
+  const phaseChoose = d.status.endsWith('-choose');
+
+  // Sub-line discrète : info de contexte (manche en cours)
+  subline.textContent = `Manche ${isRound1 ? '1' : '2'}/2`;
+
+  // Reset des classes du headline
+  headline.className = 'duel-headline';
+
+  // Affichage selon phase
+  el('d-phase-ask').style.display = phaseAsk ? '' : 'none';
+  el('d-phase-choose').style.display = phaseChoose ? '' : 'none';
+
+  if (phaseAsk){
+    if (askerIsMe){
+      // ATTAQUANT : tout le focus sur "pose tes questions"
+      headline.textContent = 'POSE TES QUESTIONS';
+      subline.textContent = `Manche ${isRound1 ? '1' : '2'}/2 · Tu mènes l'interrogatoire`;
+      // Récupération de l'indice catégorie avec FALLBACK robuste (4 niveaux)
+      const oppCat = resolveOppCat(d, rd, opp);
+      // TOUJOURS afficher le bloc pour l'attaquant (via class CSS — plus robuste que style.display)
+      indiceBlock.classList.remove('hidden');
+      if (oppCat){
+        el('d-opp-cat').textContent = oppCat;
+      } else {
+        // Debug : sauvegarder le duel pour inspection console
+        el('d-opp-cat').textContent = '?';
+        console.warn('[INDICE] Impossible de résoudre la catégorie', { duel: d, round: rd, opp });
+        window._lastFailedDuel = { duel: d, round: rd, oppId: d.pidA === PID ? d.pidB : d.pidA, players: PLAYERS, session: STATE.session };
+        // Auto-repair en arrière-plan
+        ensureDuelHasCats(d, myCurrentDuel);
+      }
+    } else {
+      // DÉFENSEUR : neutre, l'autre interroge
+      headline.textContent = 'TON SECRET EST EN JEU';
+      headline.classList.add('defend');
+      subline.textContent = `Manche ${isRound1 ? '1' : '2'}/2 · ${opp?.name || 'L\'adversaire'} t'interroge`;
+      // Pas d'INDICE pour le défenseur (class hidden)
+      indiceBlock.classList.add('hidden');
+    }
+  } else if (phaseChoose){
+    // En phase CHOOSE, on cache le bloc INDICE (de toute façon le ring n'est plus affiché)
+    indiceBlock.classList.add('hidden');
+    if (askerIsMe){
+      if (rd.pickedIdx < 0){
+        headline.textContent = 'CHOISIS LA BONNE RÉPONSE';
+        subline.textContent = 'Touche le secret que tu penses être le bon';
+      } else {
+        // Déjà cliqué → feedback
+        headline.classList.add(rd.correct ? 'win' : 'lose');
+        headline.textContent = rd.correct ? '✅ BONNE RÉPONSE' : '❌ RATÉ';
+        subline.textContent = rd.correct
+          ? 'Bien joué !'
+          : `La bonne réponse : "${rd.choices[rd.correctIdx]}"`;
+      }
+      // Render les 10 boutons
+      el('d-choices').innerHTML = rd.choices.map((s, i) => {
+        let cls = 'choice-btn';
+        if (rd.pickedIdx >= 0){
+          if (i === rd.correctIdx) cls += ' correct';
+          else if (i === rd.pickedIdx) cls += ' wrong';
+        }
+        const disabled = rd.pickedIdx >= 0 ? 'disabled' : '';
+        const click = rd.pickedIdx >= 0 ? '' : `onclick="window._pickAnswer(${i})"`;
+        return `<button class="${cls}" ${disabled} ${click}>
+          <span class="choice-num">${i+1}</span>
+          <span class="choice-text">${escapeHtml(s)}</span>
+        </button>`;
+      }).join('');
+    } else {
+      // DÉFENSEUR : l'attaquant choisit
+      if (rd.pickedIdx < 0){
+        headline.classList.add('calm');
+        headline.textContent = `⏳ ${opp?.name || 'L\'adversaire'} CHOISIT`;
+        subline.textContent = 'Il/elle sélectionne sa réponse parmi 6 propositions';
+        el('d-choices').innerHTML = '';
+      } else {
+        // Réponse reçue → afficher le résultat (sans points pour moi mais pour info)
+        headline.classList.add(rd.correct ? 'lose' : 'win');
+        headline.textContent = rd.correct ? '😬 IL T\'A TROUVÉ' : '🛡 IL S\'EST TROMPÉ';
+        subline.textContent = rd.correct
+          ? `Ton secret est dévoilé`
+          : `Ton secret reste secret`;
+        // Afficher quand même les 10 boutons en mode read-only pour visualiser
+        el('d-choices').innerHTML = rd.choices.map((s, i) => {
+          let cls = 'choice-btn';
+          if (i === rd.correctIdx) cls += ' correct';
+          else if (i === rd.pickedIdx) cls += ' wrong';
+          return `<button class="${cls}" disabled>
+            <span class="choice-num">${i+1}</span>
+            <span class="choice-text">${escapeHtml(s)}</span>
+          </button>`;
+        }).join('');
+      }
+    }
+  }
+}
+
+const RING_CIRC_J = 276.46;
+function jUpdateRing(ringEl, total, left, cls){
+  const ratio = total > 0 ? Math.max(0, Math.min(1, left/total)) : 0;
+  const offset = RING_CIRC_J * (1 - ratio);
+  const fg = ringEl.querySelector('.ring-fg');
+  if (fg){
+    fg.style.strokeDashoffset = offset;
+    fg.classList.remove('warn','urgent','fast');
+    if (cls) fg.classList.add(cls);
+  }
+  const txt = ringEl.querySelector('.ring-text-main') || ringEl.querySelector('.ring-text');
+  if (txt){
+    txt.classList.remove('warn','urgent','fast');
+    if (cls) txt.classList.add(cls);
+  }
+}
+
+let _duelTransitionTimer = null;
+
+function joueurTick(){
+  // Timer cercle session (écran play)
+  if (currentScreen === 's-play'){
+    const total = STATE.settings.sessionMin * 60000;
+    const left = Math.max(0, STATE.sessionEndAt - now());
+    el('pp-ring-text').textContent = fmtTime(left);
+    let cls = '';
+    if (left < 60000) cls = 'urgent';
+    else if (left < 180000) cls = 'warn';
+    jUpdateRing(el('pp-ring'), total, left, cls);
+  }
+
+  // Timer du duel : phase ask uniquement
+  if (myCurrentDuel && DUELS[myCurrentDuel] && currentScreen === 's-duel'){
+    const d = DUELS[myCurrentDuel];
+    const isAsking = (d.status === 'r1-ask' || d.status === 'r2-ask');
+    if (isAsking){
+      const rd = d.status === 'r1-ask' ? d.r1 : d.r2;
+      const total = rd.endAt - rd.startAt;
+      const left = rd.endAt - now();
+      el('d-timer-text').textContent = fmtTime(Math.max(0, left));
+      el('d-timer-sub').textContent = 'temps restant';
+      let cls = '';
+      if (left < 10000) cls = 'warn';
+      jUpdateRing(el('d-ring'), total, left, cls);
+
+      // Timer expiré : transition vers la phase choose (tous les clients la déclenchent, idempotent)
+      if (left <= 0){
+        const nextStatus = d.status === 'r1-ask' ? 'r1-choose' : 'r2-choose';
+        ROOT.child('duels/'+myCurrentDuel+'/status').set(nextStatus);
+      }
+    }
+  }
+}
+
+function joueurPickAnswer(idx){
+  if (!myCurrentDuel) return;
+  const d = DUELS[myCurrentDuel];
+  if (!d) return;
+  const isA = d.pidA === PID;
+  const isRound1 = d.status === 'r1-choose';
+  const isRound2 = d.status === 'r2-choose';
+  if (!isRound1 && !isRound2) return;
+  // Seul l'asker peut cliquer
+  const askerIsA = isRound1;
+  if ((askerIsA && !isA) || (!askerIsA && isA)) return;
+  const roundKey = isRound1 ? 'r1' : 'r2';
+  const rd = d[roundKey];
+  if (rd.pickedIdx >= 0) return; // déjà cliqué
+
+  const correct = (idx === rd.correctIdx);
+  const me = PLAYERS[PID];
+  const updates = {};
+  const dpath = 'duels/'+myCurrentDuel;
+  updates[dpath+'/'+roundKey+'/pickedIdx'] = idx;
+  updates[dpath+'/'+roundKey+'/correct'] = correct;
+  updates[dpath+'/'+roundKey+'/endedAt'] = now();
+  if (correct){
+    updates['players/'+PID+'/score'] = (me.score||0) + 1;
+  }
+  ROOT.update(updates);
+
+  // Son selon résultat
+  play(correct ? 'win' : 'lose');
+
+  // Schedule la transition vers la suite (2.5s pour voir le feedback)
+  if (_duelTransitionTimer) clearTimeout(_duelTransitionTimer);
+  _duelTransitionTimer = setTimeout(() => {
+    _duelTransitionTimer = null;
+    if (isRound1){
+      // Démarrer la manche 2
+      const r2Start = now();
+      ROOT.child(dpath).update({
+        status: 'r2-ask',
+        'r2/startAt': r2Start,
+        'r2/endAt': r2Start + d.roundDurMs
+      });
+    } else {
+      // Fin du duel
+      ROOT.child(dpath).update({
+        status: 'ended',
+        endedAt: now()
+      });
+    }
+  }, 2500);
+}
+
+function joueurShowDuelEnd(d, isA){
+  if (lastResultShown === d.endedAt) return;
+  lastResultShown = d.endedAt;
+
+  const aWon = d.r1?.correct;
+  const bWon = d.r2?.correct;
+  const myWon = isA ? aWon : bWon;
+  const oppWon = isA ? bWon : aWon;
+  const myPts = myWon ? 1 : 0;
+  const oppPts = oppWon ? 1 : 0;
+
+  let icon, title, msg, soundName;
+  if (myPts > oppPts){
+    icon = '🏆'; title = 'TU AS GAGNÉ LE DUEL';
+    msg = `${myPts} − ${oppPts} · Continue sur ta lancée !`;
+    soundName = 'win';
+  } else if (myPts < oppPts){
+    icon = '😅'; title = 'TU AS PERDU LE DUEL';
+    msg = `${myPts} − ${oppPts} · Essaie avec quelqu'un d'autre !`;
+    soundName = 'lose';
+  } else if (myPts === 1){
+    icon = '🤝'; title = 'ÉGALITÉ — 1 partout';
+    msg = 'Vous avez chacun trouvé. Allez défier d\'autres joueurs !';
+    soundName = null;
+  } else {
+    icon = '🤷'; title = 'AUCUN POINT';
+    msg = 'Personne n\'a trouvé. Allez défier d\'autres joueurs !';
+    soundName = null;
+  }
+  el('ov-r-icon').textContent = icon;
+  el('ov-r-title').textContent = title;
+  el('ov-r-msg').textContent = msg;
+  el('ov-result').classList.add('show');
+  if (soundName) play(soundName);
+}
+
+function joueurShowEnd(){
+  showScreen('s-end');
+  const list = sortedPlayers().slice(0, 10);
+  el('e-podium').innerHTML = list.map((p,i) => {
+    let cls = '';
+    if (i === 0) cls = 'gold'; else if (i === 1) cls = 'silver'; else if (i === 2) cls = 'bronze';
+    const rank = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '#'+(i+1)));
+    return `<div class="podium-row ${cls}">
+      <div class="p-rank">${rank}</div>
+      <div class="p-name">${escapeHtml(p.name)}${p.id===PID?' <span class="c-cyan">(toi)</span>':''}</div>
+      <div class="p-score">${p.score||0} pt</div>
+    </div>`;
+  }).join('');
+}
+
+</script>
+</body>
+</html>
